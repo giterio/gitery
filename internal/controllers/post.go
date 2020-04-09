@@ -1,32 +1,16 @@
-package main
+package controllers
 
 import (
-	"database/sql"
 	"encoding/json"
 	"net/http"
 	"path"
 	"strconv"
 
-	_ "github.com/lib/pq"
+	"gitery/internal/models"
 )
 
-func main() {
-	// connect to the Db
-	var err error
-	db, err := sql.Open("postgres", "user=gwp dbname=gwp password=gwp sslmode=disable")
-	if err != nil {
-		panic(err)
-	}
-
-	server := http.Server{
-		Addr: "127.0.0.1:8080",
-	}
-	http.HandleFunc("/post/", handleRequest(&Post{Db: db}))
-	server.ListenAndServe()
-}
-
-// main handler function
-func handleRequest(t Text) http.HandlerFunc {
+// HandlePostRequest ...
+func HandlePostRequest(t models.Text) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error
 		switch r.Method {
@@ -48,12 +32,12 @@ func handleRequest(t Text) http.HandlerFunc {
 
 // Retrieve a post
 // GET /post/1
-func handleGet(w http.ResponseWriter, r *http.Request, post Text) (err error) {
+func handleGet(w http.ResponseWriter, r *http.Request, post models.Text) (err error) {
 	id, err := strconv.Atoi(path.Base(r.URL.Path))
 	if err != nil {
 		return
 	}
-	err = post.fetch(id)
+	err = post.Fetch(id)
 	if err != nil {
 		return
 	}
@@ -68,12 +52,12 @@ func handleGet(w http.ResponseWriter, r *http.Request, post Text) (err error) {
 
 // Create a post
 // POST /post/
-func handlePost(w http.ResponseWriter, r *http.Request, post Text) (err error) {
+func handlePost(w http.ResponseWriter, r *http.Request, post models.Text) (err error) {
 	len := r.ContentLength
 	body := make([]byte, len)
 	r.Body.Read(body)
 	json.Unmarshal(body, post)
-	err = post.create()
+	err = post.Create()
 	if err != nil {
 		return
 	}
@@ -83,12 +67,12 @@ func handlePost(w http.ResponseWriter, r *http.Request, post Text) (err error) {
 
 // Update a post
 // PUT /post/1
-func handlePut(w http.ResponseWriter, r *http.Request, post Text) (err error) {
+func handlePut(w http.ResponseWriter, r *http.Request, post models.Text) (err error) {
 	id, err := strconv.Atoi(path.Base(r.URL.Path))
 	if err != nil {
 		return
 	}
-	err = post.fetch(id)
+	err = post.Fetch(id)
 	if err != nil {
 		return
 	}
@@ -96,7 +80,7 @@ func handlePut(w http.ResponseWriter, r *http.Request, post Text) (err error) {
 	body := make([]byte, len)
 	r.Body.Read(body)
 	json.Unmarshal(body, post)
-	err = post.update()
+	err = post.Update()
 	if err != nil {
 		return
 	}
@@ -106,16 +90,16 @@ func handlePut(w http.ResponseWriter, r *http.Request, post Text) (err error) {
 
 // Delete a post
 // DELETE /post/1
-func handleDelete(w http.ResponseWriter, r *http.Request, post Text) (err error) {
+func handleDelete(w http.ResponseWriter, r *http.Request, post models.Text) (err error) {
 	id, err := strconv.Atoi(path.Base(r.URL.Path))
 	if err != nil {
 		return
 	}
-	err = post.fetch(id)
+	err = post.Fetch(id)
 	if err != nil {
 		return
 	}
-	err = post.delete()
+	err = post.Delete()
 	if err != nil {
 		return
 	}
