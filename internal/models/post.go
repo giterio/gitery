@@ -4,32 +4,40 @@ import (
 	"database/sql"
 )
 
-// Text ...
-type Text interface {
-	Fetch(id int) (err error)
-	Create() (err error)
-	Update() (err error)
-	Delete() (err error)
-}
-
 // Post ...
 type Post struct {
-	Db      *sql.DB
-	ID      int    `json:"id"`
-	Content string `json:"content"`
-	Author  string `json:"author"`
+	DB       *sql.DB
+	ID       int       `json:"id"`
+	Content  string    `json:"content"`
+	Author   string    `json:"author"`
+	Comments []Comment `json:"comments"`
 }
 
 // Fetch single post
 func (post *Post) Fetch(id int) (err error) {
-	err = post.Db.QueryRow("select id, content, author from posts where id = $1", id).Scan(&post.ID, &post.Content, &post.Author)
+	post.Comments = []Comment{}
+	err = post.DB.QueryRow("select id, content, author from posts where id = $1",
+		id).Scan(&post.ID, &post.Content, &post.Author)
+	rows, err := post.DB.Query("select id, content, author from comments where post_id =$1",
+		id)
+	if err != nil {
+		return
+	}
+	for rows.Next() {
+		comment := Comment{Post: post}
+		err = rows.Scan(&comment.ID, &comment.Content, &comment.Author)
+		if err != nil {
+			return
+		}
+		post.Comments = append(post.Comments, comment)
+	}
 	return
 }
 
 // Create a new post
 func (post *Post) Create() (err error) {
 	statement := "insert into posts (content, author) values ($1, $2) returning id"
-	stmt, err := post.Db.Prepare(statement)
+	stmt, err := post.DB.Prepare(statement)
 	if err != nil {
 		return
 	}
@@ -40,12 +48,13 @@ func (post *Post) Create() (err error) {
 
 // Update a post
 func (post *Post) Update() (err error) {
-	_, err = post.Db.Exec("update posts set content = $2, author = $3 where id = $1", post.ID, post.Content, post.Author)
+	_, err = post.DB.Exec("update posts set content = $2, author = $3 where id = $1",
+		post.ID, post.Content, post.Author)
 	return
 }
 
 // Delete a post
 func (post *Post) Delete() (err error) {
-	_, err = post.Db.Exec("delete from posts where id = $1", post.ID)
+	_, err = post.DB.Exec("delete from posts where id = $1", post.ID)
 	return
 }
