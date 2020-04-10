@@ -79,6 +79,7 @@ func handlePut(w http.ResponseWriter, r *http.Request, post models.Text) (err er
 	len := r.ContentLength
 	body := make([]byte, len)
 	r.Body.Read(body)
+	// parse json from request body
 	json.Unmarshal(body, post)
 	err = post.Update()
 	if err != nil {

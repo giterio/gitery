@@ -6,7 +6,8 @@ import (
 
 // Post ...
 type Post struct {
-	DB       *sql.DB
+	DB *sql.DB `json:"-"`
+	// TODO make the ID as UUID (String) instead of int
 	ID       int       `json:"id"`
 	Content  string    `json:"content"`
 	Author   string    `json:"author"`
@@ -24,7 +25,7 @@ func (post *Post) Fetch(id int) (err error) {
 		return
 	}
 	for rows.Next() {
-		comment := Comment{Post: post}
+		comment := Comment{PostID: &post.ID}
 		err = rows.Scan(&comment.ID, &comment.Content, &comment.Author)
 		if err != nil {
 			return
