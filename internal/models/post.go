@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"database/sql"
 )
 
@@ -15,12 +16,10 @@ type Post struct {
 }
 
 // Fetch single post
-func (post *Post) Fetch(id int) (err error) {
+func (post *Post) Fetch(ctx context.Context, id int) (err error) {
 	post.Comments = []Comment{}
-	err = post.DB.QueryRow("select id, content, author from posts where id = $1",
-		id).Scan(&post.ID, &post.Content, &post.Author)
-	rows, err := post.DB.Query("select id, content, author from comments where post_id =$1",
-		id)
+	err = post.DB.QueryRowContext(ctx, "select id, content, author from posts where id = $1", id).Scan(&post.ID, &post.Content, &post.Author)
+	rows, err := post.DB.QueryContext(ctx, "select id, content, author from comments where post_id =$1", id)
 	if err != nil {
 		return
 	}
@@ -36,9 +35,9 @@ func (post *Post) Fetch(id int) (err error) {
 }
 
 // Create a new post
-func (post *Post) Create() (err error) {
+func (post *Post) Create(ctx context.Context) (err error) {
 	statement := "insert into posts (content, author) values ($1, $2) returning id"
-	stmt, err := post.DB.Prepare(statement)
+	stmt, err := post.DB.PrepareContext(ctx, statement)
 	if err != nil {
 		return
 	}
@@ -48,14 +47,13 @@ func (post *Post) Create() (err error) {
 }
 
 // Update a post
-func (post *Post) Update() (err error) {
-	_, err = post.DB.Exec("update posts set content = $2, author = $3 where id = $1",
-		post.ID, post.Content, post.Author)
+func (post *Post) Update(ctx context.Context) (err error) {
+	_, err = post.DB.ExecContext(ctx, "update posts set content = $2, author = $3 where id = $1", post.ID, post.Content, post.Author)
 	return
 }
 
 // Delete a post
-func (post *Post) Delete() (err error) {
-	_, err = post.DB.Exec("delete from posts where id = $1", post.ID)
+func (post *Post) Delete(ctx context.Context) (err error) {
+	_, err = post.DB.ExecContext(ctx, "delete from posts where id = $1", post.ID)
 	return
 }

@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 )
@@ -15,12 +16,11 @@ type Comment struct {
 }
 
 // Create ...
-func (comment *Comment) Create() (err error) {
+func (comment *Comment) Create(ctx context.Context) (err error) {
 	if comment.PostID == nil {
 		err = errors.New("Post not found")
 		return
 	}
-	err = comment.Db.QueryRow("insert into comments (content, author, post_id) values ($1, $2, $3) returning id",
-		comment.Content, comment.Author, comment.PostID).Scan(&comment.ID)
+	err = comment.Db.QueryRowContext(ctx, "insert into comments (content, author, post_id) values ($1, $2, $3) returning id", comment.Content, comment.Author, comment.PostID).Scan(&comment.ID)
 	return
 }

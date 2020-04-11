@@ -37,7 +37,8 @@ func handleGet(w http.ResponseWriter, r *http.Request, post models.Text) (err er
 	if err != nil {
 		return
 	}
-	err = post.Fetch(id)
+	ctx := r.Context()
+	err = post.Fetch(ctx, id)
 	if err != nil {
 		return
 	}
@@ -57,7 +58,8 @@ func handlePost(w http.ResponseWriter, r *http.Request, post models.Text) (err e
 	body := make([]byte, len)
 	r.Body.Read(body)
 	json.Unmarshal(body, post)
-	err = post.Create()
+	ctx := r.Context()
+	err = post.Create(ctx)
 	if err != nil {
 		return
 	}
@@ -72,7 +74,8 @@ func handlePut(w http.ResponseWriter, r *http.Request, post models.Text) (err er
 	if err != nil {
 		return
 	}
-	err = post.Fetch(id)
+	ctx := r.Context()
+	err = post.Fetch(ctx, id)
 	if err != nil {
 		return
 	}
@@ -81,7 +84,7 @@ func handlePut(w http.ResponseWriter, r *http.Request, post models.Text) (err er
 	r.Body.Read(body)
 	// parse json from request body
 	json.Unmarshal(body, post)
-	err = post.Update()
+	err = post.Update(ctx)
 	if err != nil {
 		return
 	}
@@ -96,11 +99,12 @@ func handleDelete(w http.ResponseWriter, r *http.Request, post models.Text) (err
 	if err != nil {
 		return
 	}
-	err = post.Fetch(id)
+	ctx := r.Context()
+	err = post.Fetch(ctx, id)
 	if err != nil {
 		return
 	}
-	err = post.Delete()
+	err = post.Delete(ctx)
 	if err != nil {
 		return
 	}
