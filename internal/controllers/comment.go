@@ -9,16 +9,14 @@ import (
 	"gitery/internal/models"
 )
 
-// PostHandler ...
-type PostHandler struct {
-	Model models.PostService
+// CommentHandler ...
+type CommentHandler struct {
+	Model models.CommentService
 }
 
-func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *CommentHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
 	switch r.Method {
-	case "GET":
-		err = h.handleGet(w, r)
 	case "POST":
 		err = h.handlePost(w, r)
 	case "PUT":
@@ -32,30 +30,9 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Retrieve a post
-// GET /post/1
-func (h *PostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err error) {
-	id, err := strconv.Atoi(path.Base(r.URL.Path))
-	if err != nil {
-		return
-	}
-	ctx := r.Context()
-	err = h.Model.Fetch(ctx, id)
-	if err != nil {
-		return
-	}
-	output, err := json.MarshalIndent(h.Model, "", "\t\t")
-	if err != nil {
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(output)
-	return
-}
-
 // Create a post
 // POST /post/
-func (h *PostHandler) handlePost(w http.ResponseWriter, r *http.Request) (err error) {
+func (h *CommentHandler) handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 	len := r.ContentLength
 	body := make([]byte, len)
 	r.Body.Read(body)
@@ -71,7 +48,7 @@ func (h *PostHandler) handlePost(w http.ResponseWriter, r *http.Request) (err er
 
 // Update a post
 // PUT /post/1
-func (h *PostHandler) handlePut(w http.ResponseWriter, r *http.Request) (err error) {
+func (h *CommentHandler) handlePut(w http.ResponseWriter, r *http.Request) (err error) {
 	id, err := strconv.Atoi(path.Base(r.URL.Path))
 	if err != nil {
 		return
@@ -96,7 +73,7 @@ func (h *PostHandler) handlePut(w http.ResponseWriter, r *http.Request) (err err
 
 // Delete a post
 // DELETE /post/1
-func (h *PostHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
+func (h *CommentHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
 	id, err := strconv.Atoi(path.Base(r.URL.Path))
 	if err != nil {
 		return

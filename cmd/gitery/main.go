@@ -24,16 +24,6 @@ func wrapMiddlewares(h http.Handler) http.Handler {
 	return middlewares.WrapContext(h)
 }
 
-// ShiftPath ...
-// func ShiftPath(p string) (head, tail string) {
-// 	p = path.Clean("/" + p)
-// 	i := strings.Index(p[1:], "/") + 1
-// 	if i <= 0 {
-// 		return p[1:], "/"
-// 	}
-// 	return p[1:i], p[i:]
-// }
-
 func main() {
 	// connect to the Db
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
@@ -44,9 +34,13 @@ func main() {
 		panic(err)
 	}
 
-	server := http.Server{
-		Addr: "127.0.0.1:8080",
+	rootHandler := controllers.RootHandler{
+		PostHandler: &controllers.PostHandler{Model: &models.Post{DB: db}},
 	}
-	http.Handle("/post/", wrapMiddlewares(&controllers.PostHandler{Model: &models.Post{DB: db}}))
+
+	server := http.Server{
+		Addr:    "127.0.0.1:8080",
+		Handler: wrapMiddlewares(&rootHandler),
+	}
 	server.ListenAndServe()
 }

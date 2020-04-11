@@ -11,3 +11,11 @@ type PostService interface {
 	Update(ctx context.Context) (err error)
 	Delete(ctx context.Context) (err error)
 }
+
+// CommentService ...
+type CommentService interface {
+	Fetch(ctx context.Context, id int) (err error)
+	Create(ctx context.Context) (err error)
+	Update(ctx context.Context) (err error)
+	Delete(ctx context.Context) (err error)
+}
