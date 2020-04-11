@@ -9,40 +9,41 @@ import (
 	"gitery/internal/models"
 )
 
-// HandlePostRequest ...
-func HandlePostRequest(t models.Text) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var err error
-		switch r.Method {
-		case "GET":
-			err = handleGet(w, r, t)
-		case "POST":
-			err = handlePost(w, r, t)
-		case "PUT":
-			err = handlePut(w, r, t)
-		case "DELETE":
-			err = handleDelete(w, r, t)
-		}
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+type PostHandler struct {
+	Model models.PostService
+}
+
+func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var err error
+	switch r.Method {
+	case "GET":
+		err = h.handleGet(w, r)
+	case "POST":
+		err = h.handlePost(w, r)
+	case "PUT":
+		err = h.handlePut(w, r)
+	case "DELETE":
+		err = h.handleDelete(w, r)
+	}
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 }
 
 // Retrieve a post
 // GET /post/1
-func handleGet(w http.ResponseWriter, r *http.Request, post models.Text) (err error) {
+func (h *PostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err error) {
 	id, err := strconv.Atoi(path.Base(r.URL.Path))
 	if err != nil {
 		return
 	}
 	ctx := r.Context()
-	err = post.Fetch(ctx, id)
+	err = h.Model.Fetch(ctx, id)
 	if err != nil {
 		return
 	}
-	output, err := json.MarshalIndent(post, "", "\t\t")
+	output, err := json.MarshalIndent(h.Model, "", "\t\t")
 	if err != nil {
 		return
 	}
@@ -53,13 +54,13 @@ func handleGet(w http.ResponseWriter, r *http.Request, post models.Text) (err er
 
 // Create a post
 // POST /post/
-func handlePost(w http.ResponseWriter, r *http.Request, post models.Text) (err error) {
+func (h *PostHandler) handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 	len := r.ContentLength
 	body := make([]byte, len)
 	r.Body.Read(body)
-	json.Unmarshal(body, post)
+	json.Unmarshal(body, h.Model)
 	ctx := r.Context()
-	err = post.Create(ctx)
+	err = h.Model.Create(ctx)
 	if err != nil {
 		return
 	}
@@ -69,13 +70,13 @@ func handlePost(w http.ResponseWriter, r *http.Request, post models.Text) (err e
 
 // Update a post
 // PUT /post/1
-func handlePut(w http.ResponseWriter, r *http.Request, post models.Text) (err error) {
+func (h *PostHandler) handlePut(w http.ResponseWriter, r *http.Request) (err error) {
 	id, err := strconv.Atoi(path.Base(r.URL.Path))
 	if err != nil {
 		return
 	}
 	ctx := r.Context()
-	err = post.Fetch(ctx, id)
+	err = h.Model.Fetch(ctx, id)
 	if err != nil {
 		return
 	}
@@ -83,8 +84,8 @@ func handlePut(w http.ResponseWriter, r *http.Request, post models.Text) (err er
 	body := make([]byte, len)
 	r.Body.Read(body)
 	// parse json from request body
-	json.Unmarshal(body, post)
-	err = post.Update(ctx)
+	json.Unmarshal(body, h.Model)
+	err = h.Model.Update(ctx)
 	if err != nil {
 		return
 	}
@@ -94,17 +95,17 @@ func handlePut(w http.ResponseWriter, r *http.Request, post models.Text) (err er
 
 // Delete a post
 // DELETE /post/1
-func handleDelete(w http.ResponseWriter, r *http.Request, post models.Text) (err error) {
+func (h *PostHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
 	id, err := strconv.Atoi(path.Base(r.URL.Path))
 	if err != nil {
 		return
 	}
 	ctx := r.Context()
-	err = post.Fetch(ctx, id)
+	err = h.Model.Fetch(ctx, id)
 	if err != nil {
 		return
 	}
-	err = post.Delete(ctx)
+	err = h.Model.Delete(ctx)
 	if err != nil {
 		return
 	}

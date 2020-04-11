@@ -4,8 +4,8 @@ import (
 	"context"
 )
 
-// Text ...
-type Text interface {
+// PostService ...
+type PostService interface {
 	Fetch(ctx context.Context, id int) (err error)
 	Create(ctx context.Context) (err error)
 	Update(ctx context.Context) (err error)

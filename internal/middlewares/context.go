@@ -7,10 +7,10 @@ import (
 )
 
 // WrapContext put database and request in r.Context
-func WrapContext(h http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, req *http.Request) {
-		ctx, cancel := context.WithTimeout(req.Context(), 10*time.Second)
+func WrapContext(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		ctx, cancel := context.WithTimeout(req.Context(), 5*time.Second)
 		defer cancel()
-		h(w, req.WithContext(ctx))
-	}
+		h.ServeHTTP(w, req.WithContext(ctx))
+	})
 }
