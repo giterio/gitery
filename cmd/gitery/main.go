@@ -7,7 +7,7 @@ import (
 
 	_ "github.com/lib/pq"
 
-	"gitery/internal/controllers"
+	ctl "gitery/internal/controllers"
 	"gitery/internal/middlewares"
 	"gitery/internal/models"
 )
@@ -34,13 +34,13 @@ func main() {
 		panic(err)
 	}
 
-	rootHandler := controllers.RootHandler{
-		PostHandler: &controllers.PostHandler{Model: &models.Post{DB: db}},
+	router := ctl.Router{
+		PostHandler: &ctl.PostHandler{Model: &models.Post{DB: db}},
 	}
 
 	server := http.Server{
 		Addr:    "127.0.0.1:8080",
-		Handler: wrapMiddlewares(&rootHandler),
+		Handler: wrapMiddlewares(&router),
 	}
 	server.ListenAndServe()
 }

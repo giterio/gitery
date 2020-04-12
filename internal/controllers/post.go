@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"gitery/internal/models"
+	route "gitery/internal/utils"
 )
 
 // PostHandler ...
@@ -35,7 +36,11 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // Retrieve a post
 // GET /post/1
 func (h *PostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err error) {
-	id, err := strconv.Atoi(path.Base(r.URL.Path))
+	route, err := route.Of(r)
+	if err != nil {
+		return
+	}
+	id, err := strconv.Atoi(route.BasePath())
 	if err != nil {
 		return
 	}
