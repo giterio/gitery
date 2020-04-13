@@ -17,7 +17,7 @@ type Comment struct {
 
 // Fetch single comment
 func (comment *Comment) Fetch(ctx context.Context, id int) (err error) {
-	err = comment.DB.QueryRowContext(ctx, "select id, content, author from posts where id = $1", id).Scan(&comment.ID, &comment.Content, &comment.Author)
+	err = comment.DB.QueryRowContext(ctx, "select id, content, author from comments where id = $1", id).Scan(&comment.ID, &comment.Content, &comment.Author)
 	return
 }
 

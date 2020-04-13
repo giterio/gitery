@@ -30,8 +30,8 @@ func (h *CommentHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Create a post
-// POST /post/
+// Create a comment
+// POST /comment/
 func (h *CommentHandler) handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 	len := r.ContentLength
 	body := make([]byte, len)
@@ -46,8 +46,8 @@ func (h *CommentHandler) handlePost(w http.ResponseWriter, r *http.Request) (err
 	return
 }
 
-// Update a post
-// PUT /post/1
+// Update a comment
+// PUT /comment/1
 func (h *CommentHandler) handlePut(w http.ResponseWriter, r *http.Request) (err error) {
 	id, err := strconv.Atoi(path.Base(r.URL.Path))
 	if err != nil {
@@ -71,8 +71,8 @@ func (h *CommentHandler) handlePut(w http.ResponseWriter, r *http.Request) (err 
 	return
 }
 
-// Delete a post
-// DELETE /post/1
+// Delete a comment
+// DELETE /comment/1
 func (h *CommentHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
 	id, err := strconv.Atoi(path.Base(r.URL.Path))
 	if err != nil {

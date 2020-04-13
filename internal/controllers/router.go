@@ -8,8 +8,8 @@ import (
 
 // Router ...
 type Router struct {
-	PostHandler *PostHandler
-	// add other sub-handlers
+	PostHandler    *PostHandler
+	CommentHandler *CommentHandler
 }
 
 func (h *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -19,6 +19,9 @@ func (h *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch param {
 	case "post":
 		h.PostHandler.ServeHTTP(w, r)
+		return
+	case "comment":
+		h.CommentHandler.ServeHTTP(w, r)
 		return
 	default:
 		http.Error(w, "Not Found", http.StatusNotFound)

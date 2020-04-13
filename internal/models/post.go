@@ -7,8 +7,7 @@ import (
 
 // Post ...
 type Post struct {
-	DB *sql.DB `json:"-"`
-	// TODO make the ID as UUID (String) instead of int
+	DB       *sql.DB   `json:"-"`
 	ID       int       `json:"id"`
 	Content  string    `json:"content"`
 	Author   string    `json:"author"`
