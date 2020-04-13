@@ -14,9 +14,9 @@ type Router struct {
 
 func (h *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	route := route.Route{Path: r.URL.Path}
-	currentPath, subRoute := route.Next()
-	r = subRoute.InjectContext(r)
-	switch currentPath {
+	param, subRoute := route.Shift()
+	r = subRoute.BindContext(r)
+	switch param {
 	case "post":
 		h.PostHandler.ServeHTTP(w, r)
 		return

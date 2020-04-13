@@ -3,7 +3,6 @@ package controllers
 import (
 	"encoding/json"
 	"net/http"
-	"path"
 	"strconv"
 
 	"gitery/internal/models"
@@ -36,15 +35,15 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // Retrieve a post
 // GET /post/1
 func (h *PostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err error) {
-	route, err := route.Of(r)
-	if err != nil {
-		return
-	}
-	id, err := strconv.Atoi(route.BasePath())
-	if err != nil {
-		return
-	}
 	ctx := r.Context()
+	param, _, err := route.Extract(ctx)
+	if err != nil {
+		return
+	}
+	id, err := strconv.Atoi(param)
+	if err != nil {
+		return
+	}
 	err = h.Model.Fetch(ctx, id)
 	if err != nil {
 		return
@@ -77,11 +76,15 @@ func (h *PostHandler) handlePost(w http.ResponseWriter, r *http.Request) (err er
 // Update a post
 // PUT /post/1
 func (h *PostHandler) handlePut(w http.ResponseWriter, r *http.Request) (err error) {
-	id, err := strconv.Atoi(path.Base(r.URL.Path))
+	ctx := r.Context()
+	param, _, err := route.Extract(ctx)
 	if err != nil {
 		return
 	}
-	ctx := r.Context()
+	id, err := strconv.Atoi(param)
+	if err != nil {
+		return
+	}
 	err = h.Model.Fetch(ctx, id)
 	if err != nil {
 		return
@@ -102,11 +105,15 @@ func (h *PostHandler) handlePut(w http.ResponseWriter, r *http.Request) (err err
 // Delete a post
 // DELETE /post/1
 func (h *PostHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
-	id, err := strconv.Atoi(path.Base(r.URL.Path))
+	ctx := r.Context()
+	param, _, err := route.Extract(ctx)
 	if err != nil {
 		return
 	}
-	ctx := r.Context()
+	id, err := strconv.Atoi(param)
+	if err != nil {
+		return
+	}
 	err = h.Model.Fetch(ctx, id)
 	if err != nil {
 		return
