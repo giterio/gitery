@@ -3,7 +3,6 @@ package controllers
 import (
 	"encoding/json"
 	"net/http"
-	"path"
 	"strconv"
 
 	"gitery/internal/models"
@@ -17,11 +16,11 @@ type CommentHandler struct {
 func (h *CommentHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
 	switch r.Method {
-	case "POST":
+	case http.MethodPost:
 		err = h.handlePost(w, r)
-	case "PUT":
+	case http.MethodPut:
 		err = h.handlePut(w, r)
-	case "DELETE":
+	case http.MethodDelete:
 		err = h.handleDelete(w, r)
 	}
 	if err != nil {
@@ -42,18 +41,21 @@ func (h *CommentHandler) handlePost(w http.ResponseWriter, r *http.Request) (err
 	if err != nil {
 		return
 	}
-	w.WriteHeader(200)
+	output, err := json.MarshalIndent(h.Model, "", "\t\t")
+	if err != nil {
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(output)
 	return
 }
 
 // Update a comment
 // PUT /comment/1
 func (h *CommentHandler) handlePut(w http.ResponseWriter, r *http.Request) (err error) {
-	id, err := strconv.Atoi(path.Base(r.URL.Path))
-	if err != nil {
-		return
-	}
 	ctx := r.Context()
+	param, _ := ExtractRoute(ctx)
+	id, err := strconv.Atoi(param)
 	err = h.Model.Fetch(ctx, id)
 	if err != nil {
 		return
@@ -67,18 +69,24 @@ func (h *CommentHandler) handlePut(w http.ResponseWriter, r *http.Request) (err 
 	if err != nil {
 		return
 	}
-	w.WriteHeader(200)
+	output, err := json.MarshalIndent(h.Model, "", "\t\t")
+	if err != nil {
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(output)
 	return
 }
 
 // Delete a comment
 // DELETE /comment/1
 func (h *CommentHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
-	id, err := strconv.Atoi(path.Base(r.URL.Path))
+	ctx := r.Context()
+	param, _ := ExtractRoute(ctx)
+	id, err := strconv.Atoi(param)
 	if err != nil {
 		return
 	}
-	ctx := r.Context()
 	err = h.Model.Fetch(ctx, id)
 	if err != nil {
 		return
@@ -87,6 +95,6 @@ func (h *CommentHandler) handleDelete(w http.ResponseWriter, r *http.Request) (e
 	if err != nil {
 		return
 	}
-	w.WriteHeader(200)
+	w.WriteHeader(http.StatusOK)
 	return
 }

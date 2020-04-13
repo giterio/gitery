@@ -21,6 +21,7 @@ const (
 )
 
 func wrapMiddlewares(h http.Handler) http.Handler {
+	h = middlewares.Constraint(h)
 	return middlewares.WrapContext(h)
 }
 

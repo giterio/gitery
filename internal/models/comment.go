@@ -9,7 +9,7 @@ import (
 // Comment ...
 type Comment struct {
 	DB      *sql.DB `json:"-"`
-	ID      int     `json:"id"`
+	ID      *int    `json:"id"`
 	Content string  `json:"content"`
 	Author  string  `json:"author"`
 	PostID  *int    `json:"post_id"`

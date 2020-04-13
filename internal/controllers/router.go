@@ -2,19 +2,20 @@ package controllers
 
 import (
 	"net/http"
-
-	route "gitery/internal/utils"
 )
 
-// Router ...
+// Router is the root handler of comming request
 type Router struct {
 	PostHandler    *PostHandler
 	CommentHandler *CommentHandler
 }
 
 func (h *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	route := route.Route{Path: r.URL.Path}
+	// create a Route with full path
+	route := Route{Path: r.URL.Path}
+	// extract the first parameter and generate a sub-route
 	param, subRoute := route.Shift()
+	// bind the sub-route with request's context
 	r = subRoute.BindContext(r)
 	switch param {
 	case "post":
@@ -24,6 +25,6 @@ func (h *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.CommentHandler.ServeHTTP(w, r)
 		return
 	default:
-		http.Error(w, "Not Found", http.StatusNotFound)
+		http.NotFound(w, r)
 	}
 }

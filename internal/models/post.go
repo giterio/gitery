@@ -8,7 +8,7 @@ import (
 // Post ...
 type Post struct {
 	DB       *sql.DB   `json:"-"`
-	ID       int       `json:"id"`
+	ID       *int      `json:"id"`
 	Content  string    `json:"content"`
 	Author   string    `json:"author"`
 	Comments []Comment `json:"comments"`
@@ -23,7 +23,7 @@ func (post *Post) Fetch(ctx context.Context, id int) (err error) {
 		return
 	}
 	for rows.Next() {
-		comment := Comment{PostID: &post.ID}
+		comment := Comment{PostID: post.ID}
 		err = rows.Scan(&comment.ID, &comment.Content, &comment.Author)
 		if err != nil {
 			return
@@ -35,6 +35,7 @@ func (post *Post) Fetch(ctx context.Context, id int) (err error) {
 
 // Create a new post
 func (post *Post) Create(ctx context.Context) (err error) {
+	post.Comments = []Comment{}
 	statement := "insert into posts (content, author) values ($1, $2) returning id"
 	stmt, err := post.DB.PrepareContext(ctx, statement)
 	if err != nil {

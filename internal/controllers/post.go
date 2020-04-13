@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"gitery/internal/models"
-	route "gitery/internal/utils"
 )
 
 // PostHandler ...
@@ -17,13 +16,13 @@ type PostHandler struct {
 func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
 	switch r.Method {
-	case "GET":
+	case http.MethodGet:
 		err = h.handleGet(w, r)
-	case "POST":
+	case http.MethodPost:
 		err = h.handlePost(w, r)
-	case "PUT":
+	case http.MethodPut:
 		err = h.handlePut(w, r)
-	case "DELETE":
+	case http.MethodDelete:
 		err = h.handleDelete(w, r)
 	}
 	if err != nil {
@@ -36,10 +35,7 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // GET /post/1
 func (h *PostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
-	param, _, err := route.Extract(ctx)
-	if err != nil {
-		return
-	}
+	param, _ := ExtractRoute(ctx)
 	id, err := strconv.Atoi(param)
 	if err != nil {
 		return
@@ -69,7 +65,12 @@ func (h *PostHandler) handlePost(w http.ResponseWriter, r *http.Request) (err er
 	if err != nil {
 		return
 	}
-	w.WriteHeader(200)
+	output, err := json.MarshalIndent(h.Model, "", "\t\t")
+	if err != nil {
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(output)
 	return
 }
 
@@ -77,10 +78,7 @@ func (h *PostHandler) handlePost(w http.ResponseWriter, r *http.Request) (err er
 // PUT /post/1
 func (h *PostHandler) handlePut(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
-	param, _, err := route.Extract(ctx)
-	if err != nil {
-		return
-	}
+	param, _ := ExtractRoute(ctx)
 	id, err := strconv.Atoi(param)
 	if err != nil {
 		return
@@ -98,7 +96,12 @@ func (h *PostHandler) handlePut(w http.ResponseWriter, r *http.Request) (err err
 	if err != nil {
 		return
 	}
-	w.WriteHeader(200)
+	output, err := json.MarshalIndent(h.Model, "", "\t\t")
+	if err != nil {
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(output)
 	return
 }
 
@@ -106,10 +109,7 @@ func (h *PostHandler) handlePut(w http.ResponseWriter, r *http.Request) (err err
 // DELETE /post/1
 func (h *PostHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
-	param, _, err := route.Extract(ctx)
-	if err != nil {
-		return
-	}
+	param, _ := ExtractRoute(ctx)
 	id, err := strconv.Atoi(param)
 	if err != nil {
 		return
@@ -122,6 +122,6 @@ func (h *PostHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err 
 	if err != nil {
 		return
 	}
-	w.WriteHeader(200)
+	w.WriteHeader(http.StatusOK)
 	return
 }
