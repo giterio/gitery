@@ -35,14 +35,14 @@ func main() {
 		panic(err)
 	}
 
-	router := controllers.Router{
+	router := &controllers.Router{
 		PostHandler:    &controllers.PostHandler{Model: &models.Post{DB: db}},
 		CommentHandler: &controllers.CommentHandler{Model: &models.Comment{DB: db}},
 	}
 
 	server := http.Server{
 		Addr:    "127.0.0.1:8080",
-		Handler: wrapMiddlewares(&router),
+		Handler: wrapMiddlewares(router),
 	}
 	server.ListenAndServe()
 }
