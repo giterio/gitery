@@ -1,8 +1,15 @@
-package models
+package domains
 
 import (
 	"context"
 )
+
+type Post struct {
+	ID       *int      `json:"id"`
+	Content  string    `json:"content"`
+	Author   string    `json:"author"`
+	Comments []Comment `json:"comments"`
+}
 
 // PostService ...
 type PostService interface {
@@ -10,6 +17,13 @@ type PostService interface {
 	Create(ctx context.Context) (err error)
 	Update(ctx context.Context) (err error)
 	Delete(ctx context.Context) (err error)
+}
+
+type Comment struct {
+	ID      *int   `json:"id"`
+	Content string `json:"content"`
+	Author  string `json:"author"`
+	PostID  *int   `json:"post_id"`
 }
 
 // CommentService ...

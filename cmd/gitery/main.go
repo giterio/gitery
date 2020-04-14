@@ -36,8 +36,8 @@ func main() {
 	}
 
 	router := &controllers.Router{
-		PostHandler:    &controllers.PostHandler{Model: &models.Post{DB: db}},
-		CommentHandler: &controllers.CommentHandler{Model: &models.Comment{DB: db}},
+		PostHandler:    &controllers.PostHandler{Model: &models.PostService{DB: db}},
+		CommentHandler: &controllers.CommentHandler{Model: &models.CommentService{DB: db}},
 	}
 
 	server := http.Server{

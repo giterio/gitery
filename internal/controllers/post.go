@@ -5,12 +5,13 @@ import (
 	"net/http"
 	"strconv"
 
+	"gitery/internal/domains"
 	"gitery/internal/models"
 )
 
 // PostHandler ...
 type PostHandler struct {
-	Model models.PostService
+	Model *models.PostService
 }
 
 func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -40,11 +41,11 @@ func (h *PostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err err
 	if err != nil {
 		return
 	}
-	err = h.Model.Fetch(ctx, id)
+	post, err := h.Model.Fetch(ctx, id)
 	if err != nil {
 		return
 	}
-	output, err := json.MarshalIndent(h.Model, "", "\t\t")
+	output, err := json.MarshalIndent(post, "", "\t\t")
 	if err != nil {
 		return
 	}
@@ -59,13 +60,14 @@ func (h *PostHandler) handlePost(w http.ResponseWriter, r *http.Request) (err er
 	len := r.ContentLength
 	body := make([]byte, len)
 	r.Body.Read(body)
-	json.Unmarshal(body, h.Model)
+	post := domains.Post{}
+	json.Unmarshal(body, &post)
 	ctx := r.Context()
-	err = h.Model.Create(ctx)
+	err = h.Model.Create(ctx, &post)
 	if err != nil {
 		return
 	}
-	output, err := json.MarshalIndent(h.Model, "", "\t\t")
+	output, err := json.MarshalIndent(post, "", "\t\t")
 	if err != nil {
 		return
 	}
@@ -83,7 +85,7 @@ func (h *PostHandler) handlePut(w http.ResponseWriter, r *http.Request) (err err
 	if err != nil {
 		return
 	}
-	err = h.Model.Fetch(ctx, id)
+	post, err := h.Model.Fetch(ctx, id)
 	if err != nil {
 		return
 	}
@@ -91,12 +93,12 @@ func (h *PostHandler) handlePut(w http.ResponseWriter, r *http.Request) (err err
 	body := make([]byte, len)
 	r.Body.Read(body)
 	// parse json from request body
-	json.Unmarshal(body, h.Model)
-	err = h.Model.Update(ctx)
+	json.Unmarshal(body, &post)
+	err = h.Model.Update(ctx, &post)
 	if err != nil {
 		return
 	}
-	output, err := json.MarshalIndent(h.Model, "", "\t\t")
+	output, err := json.MarshalIndent(post, "", "\t\t")
 	if err != nil {
 		return
 	}
@@ -114,11 +116,7 @@ func (h *PostHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err 
 	if err != nil {
 		return
 	}
-	err = h.Model.Fetch(ctx, id)
-	if err != nil {
-		return
-	}
-	err = h.Model.Delete(ctx)
+	err = h.Model.Delete(ctx, id)
 	if err != nil {
 		return
 	}
