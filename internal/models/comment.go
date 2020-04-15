@@ -15,7 +15,7 @@ type CommentService struct {
 // Fetch single comment
 func (cs *CommentService) Fetch(ctx context.Context, id int) (comment domains.Comment, err error) {
 	comment = domains.Comment{}
-	err = cs.DB.QueryRowContext(ctx, "select id, content, author from comments where id = $1", id).Scan(&comment.ID, &comment.Content, &comment.Author)
+	err = cs.DB.QueryRowContext(ctx, "select id, content, author, post_id from comments where id = $1", id).Scan(&comment.ID, &comment.Content, &comment.Author, &comment.PostID)
 	return
 }
 
