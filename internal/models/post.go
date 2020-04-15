@@ -17,6 +17,9 @@ func (ps *PostService) Fetch(ctx context.Context, id int) (post domains.Post, er
 	post = domains.Post{}
 	post.Comments = []domains.Comment{}
 	err = ps.DB.QueryRowContext(ctx, "select id, content, author from posts where id = $1", id).Scan(&post.ID, &post.Content, &post.Author)
+	if err != nil {
+		return
+	}
 	rows, err := ps.DB.QueryContext(ctx, "select id, content, author from comments where post_id =$1", id)
 	if err != nil {
 		return

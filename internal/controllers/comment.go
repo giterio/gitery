@@ -47,7 +47,6 @@ func (h *CommentHandler) handlePost(w http.ResponseWriter, r *http.Request) (err
 	if err != nil {
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
 	w.Write(output)
 	return
 }
@@ -75,7 +74,6 @@ func (h *CommentHandler) handlePut(w http.ResponseWriter, r *http.Request) (err 
 	if err != nil {
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
 	w.Write(output)
 	return
 }
