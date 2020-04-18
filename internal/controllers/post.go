@@ -6,12 +6,11 @@ import (
 	"strconv"
 
 	"gitery/internal/domains"
-	"gitery/internal/models"
 )
 
 // PostHandler ...
 type PostHandler struct {
-	Model *models.PostService
+	Model domains.PostService
 }
 
 func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

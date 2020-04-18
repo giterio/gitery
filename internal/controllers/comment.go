@@ -6,12 +6,11 @@ import (
 	"strconv"
 
 	"gitery/internal/domains"
-	"gitery/internal/models"
 )
 
 // CommentHandler ...
 type CommentHandler struct {
-	Model *models.CommentService
+	Model domains.CommentService
 }
 
 func (h *CommentHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
