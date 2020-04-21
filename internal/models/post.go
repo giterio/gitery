@@ -3,27 +3,29 @@ package models
 import (
 	"context"
 	"database/sql"
+
+	"gitery/internal/domains"
 )
 
-// Post ...
-type Post struct {
-	DB       *sql.DB   `json:"-"`
-	ID       *int      `json:"id"`
-	Content  string    `json:"content"`
-	Author   string    `json:"author"`
-	Comments []Comment `json:"comments"`
+// PostService ...
+type PostService struct {
+	DB *sql.DB
 }
 
 // Fetch single post
-func (post *Post) Fetch(ctx context.Context, id int) (err error) {
-	post.Comments = []Comment{}
-	err = post.DB.QueryRowContext(ctx, "select id, content, author from posts where id = $1", id).Scan(&post.ID, &post.Content, &post.Author)
-	rows, err := post.DB.QueryContext(ctx, "select id, content, author from comments where post_id =$1", id)
+func (ps *PostService) Fetch(ctx context.Context, id int) (post domains.Post, err error) {
+	post = domains.Post{}
+	post.Comments = []domains.Comment{}
+	err = ps.DB.QueryRowContext(ctx, "select id, content, author from posts where id = $1", id).Scan(&post.ID, &post.Content, &post.Author)
+	if err != nil {
+		return
+	}
+	rows, err := ps.DB.QueryContext(ctx, "select id, content, author from comments where post_id =$1", id)
 	if err != nil {
 		return
 	}
 	for rows.Next() {
-		comment := Comment{PostID: post.ID}
+		comment := domains.Comment{PostID: &id}
 		err = rows.Scan(&comment.ID, &comment.Content, &comment.Author)
 		if err != nil {
 			return
@@ -34,10 +36,9 @@ func (post *Post) Fetch(ctx context.Context, id int) (err error) {
 }
 
 // Create a new post
-func (post *Post) Create(ctx context.Context) (err error) {
-	post.Comments = []Comment{}
+func (ps *PostService) Create(ctx context.Context, post *domains.Post) (err error) {
 	statement := "insert into posts (content, author) values ($1, $2) returning id"
-	stmt, err := post.DB.PrepareContext(ctx, statement)
+	stmt, err := ps.DB.PrepareContext(ctx, statement)
 	if err != nil {
 		return
 	}
@@ -47,13 +48,13 @@ func (post *Post) Create(ctx context.Context) (err error) {
 }
 
 // Update a post
-func (post *Post) Update(ctx context.Context) (err error) {
-	_, err = post.DB.ExecContext(ctx, "update posts set content = $2, author = $3 where id = $1", post.ID, post.Content, post.Author)
+func (ps *PostService) Update(ctx context.Context, post *domains.Post) (err error) {
+	_, err = ps.DB.ExecContext(ctx, "update posts set content = $2, author = $3 where id = $1", post.ID, post.Content, post.Author)
 	return
 }
 
 // Delete a post
-func (post *Post) Delete(ctx context.Context) (err error) {
-	_, err = post.DB.ExecContext(ctx, "delete from posts where id = $1", post.ID)
+func (ps *PostService) Delete(ctx context.Context, id int) (err error) {
+	_, err = ps.DB.ExecContext(ctx, "delete from posts where id = $1", id)
 	return
 }

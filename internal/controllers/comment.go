@@ -5,12 +5,12 @@ import (
 	"net/http"
 	"strconv"
 
-	"gitery/internal/models"
+	"gitery/internal/domains"
 )
 
 // CommentHandler ...
 type CommentHandler struct {
-	Model models.CommentService
+	Model domains.CommentService
 }
 
 func (h *CommentHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -35,17 +35,17 @@ func (h *CommentHandler) handlePost(w http.ResponseWriter, r *http.Request) (err
 	len := r.ContentLength
 	body := make([]byte, len)
 	r.Body.Read(body)
-	json.Unmarshal(body, h.Model)
+	comment := domains.Comment{}
+	json.Unmarshal(body, &comment)
 	ctx := r.Context()
-	err = h.Model.Create(ctx)
+	err = h.Model.Create(ctx, &comment)
 	if err != nil {
 		return
 	}
-	output, err := json.MarshalIndent(h.Model, "", "\t\t")
+	output, err := json.MarshalIndent(comment, "", "\t\t")
 	if err != nil {
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
 	w.Write(output)
 	return
 }
@@ -56,7 +56,7 @@ func (h *CommentHandler) handlePut(w http.ResponseWriter, r *http.Request) (err 
 	ctx := r.Context()
 	param, _ := ExtractRoute(ctx)
 	id, err := strconv.Atoi(param)
-	err = h.Model.Fetch(ctx, id)
+	comment, err := h.Model.Fetch(ctx, id)
 	if err != nil {
 		return
 	}
@@ -64,16 +64,15 @@ func (h *CommentHandler) handlePut(w http.ResponseWriter, r *http.Request) (err 
 	body := make([]byte, len)
 	r.Body.Read(body)
 	// parse json from request body
-	json.Unmarshal(body, h.Model)
-	err = h.Model.Update(ctx)
+	json.Unmarshal(body, &comment)
+	err = h.Model.Update(ctx, &comment)
 	if err != nil {
 		return
 	}
-	output, err := json.MarshalIndent(h.Model, "", "\t\t")
+	output, err := json.MarshalIndent(comment, "", "\t\t")
 	if err != nil {
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
 	w.Write(output)
 	return
 }
@@ -87,11 +86,7 @@ func (h *CommentHandler) handleDelete(w http.ResponseWriter, r *http.Request) (e
 	if err != nil {
 		return
 	}
-	err = h.Model.Fetch(ctx, id)
-	if err != nil {
-		return
-	}
-	err = h.Model.Delete(ctx)
+	err = h.Model.Delete(ctx, id)
 	if err != nil {
 		return
 	}
