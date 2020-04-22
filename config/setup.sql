@@ -2,14 +2,18 @@ drop table if exists posts cascade;
 drop table if exists comments;
 
 create table posts (
-	id serial primary key,
-	content text,
-	author varchar(255)
+	id SERIAL PRIMARY KEY,
+	content TEXT NOT NULL,
+	author VARCHAR(255) NOT NULL,
+	created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+	updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
 create table comments(
-	id serial primary key,
-	content text,
-	author varchar(255),
-	post_id integer references posts(id)
+	id SERIAL PRIMARY KEY,
+	content TEXT NOT NULL,
+	author VARCHAR(255) NOT NULL,
+	post_id INTEGER REFERENCES posts(id),
+	created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+	updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 )

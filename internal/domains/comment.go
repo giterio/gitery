@@ -2,14 +2,17 @@ package domains
 
 import (
 	"context"
+	"time"
 )
 
 // Comment ...
 type Comment struct {
-	ID      *int   `json:"id"`
-	Content string `json:"content"`
-	Author  string `json:"author"`
-	PostID  *int   `json:"post_id"`
+	ID        *int      `json:"id"`
+	Content   string    `json:"content"`
+	Author    string    `json:"author"`
+	PostID    *int      `json:"post_id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 // CommentService ...

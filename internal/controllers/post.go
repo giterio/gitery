@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"gitery/internal/domains"
+	"gitery/internal/views"
 )
 
 // PostHandler ...
@@ -44,11 +45,7 @@ func (h *PostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err err
 	if err != nil {
 		return
 	}
-	output, err := json.MarshalIndent(post, "", "\t\t")
-	if err != nil {
-		return
-	}
-	w.Write(output)
+	err = views.Render(w, post)
 	return
 }
 
@@ -65,11 +62,7 @@ func (h *PostHandler) handlePost(w http.ResponseWriter, r *http.Request) (err er
 	if err != nil {
 		return
 	}
-	output, err := json.MarshalIndent(post, "", "\t\t")
-	if err != nil {
-		return
-	}
-	w.Write(output)
+	err = views.Render(w, post)
 	return
 }
 
@@ -95,11 +88,7 @@ func (h *PostHandler) handlePut(w http.ResponseWriter, r *http.Request) (err err
 	if err != nil {
 		return
 	}
-	output, err := json.MarshalIndent(post, "", "\t\t")
-	if err != nil {
-		return
-	}
-	w.Write(output)
+	err = views.Render(w, post)
 	return
 }
 

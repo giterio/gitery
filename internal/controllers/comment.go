@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"gitery/internal/domains"
+	"gitery/internal/views"
 )
 
 // CommentHandler ...
@@ -42,11 +43,7 @@ func (h *CommentHandler) handlePost(w http.ResponseWriter, r *http.Request) (err
 	if err != nil {
 		return
 	}
-	output, err := json.MarshalIndent(comment, "", "\t\t")
-	if err != nil {
-		return
-	}
-	w.Write(output)
+	err = views.Render(w, comment)
 	return
 }
 
@@ -69,11 +66,7 @@ func (h *CommentHandler) handlePut(w http.ResponseWriter, r *http.Request) (err 
 	if err != nil {
 		return
 	}
-	output, err := json.MarshalIndent(comment, "", "\t\t")
-	if err != nil {
-		return
-	}
-	w.Write(output)
+	err = views.Render(w, comment)
 	return
 }
 

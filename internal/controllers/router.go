@@ -17,6 +17,7 @@ func (h *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	param, subRoute := route.Shift()
 	// bind the sub-route with request's context
 	r = subRoute.BindContext(r)
+
 	switch param {
 	case "post":
 		h.PostHandler.ServeHTTP(w, r)
