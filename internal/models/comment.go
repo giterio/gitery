@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"gitery/internal/domains"
-	"time"
 )
 
 // CommentService ...
@@ -27,15 +26,15 @@ func (cs *CommentService) Create(ctx context.Context, comment *domains.Comment) 
 		err = errors.New("Post not found")
 		return
 	}
-	err = cs.DB.QueryRowContext(ctx, "insert into comments (content, author, post_id) values ($1, $2, $3) returning id",
-		comment.Content, comment.Author, comment.PostID).Scan(&comment.ID)
+	err = cs.DB.QueryRowContext(ctx, "insert into comments (content, author, post_id) values ($1, $2, $3) returning id, created_at, updated_at",
+		comment.Content, comment.Author, comment.PostID).Scan(&comment.ID, &comment.CreatedAt, &comment.UpdatedAt)
 	return
 }
 
 // Update a comment
 func (cs *CommentService) Update(ctx context.Context, comment *domains.Comment) (err error) {
-	_, err = cs.DB.ExecContext(ctx, "update comments set content = $2, author = $3, updated_at = $4 where id = $1",
-		comment.ID, comment.Content, comment.Author, time.Now())
+	err = cs.DB.QueryRowContext(ctx, "update comments set content = $2, author = $3, updated_at = $4 where id = $1 returning updated_at",
+		comment.ID, comment.Content, comment.Author).Scan(&comment.UpdatedAt)
 	return
 }
 

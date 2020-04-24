@@ -3,7 +3,6 @@ package models
 import (
 	"context"
 	"database/sql"
-	"time"
 
 	"gitery/internal/domains"
 )
@@ -39,19 +38,20 @@ func (ps *PostService) Fetch(ctx context.Context, id int) (post domains.Post, er
 
 // Create a new post
 func (ps *PostService) Create(ctx context.Context, post *domains.Post) (err error) {
-	statement := "insert into posts (content, author) values ($1, $2) returning id"
+	statement := "insert into posts (content, author) values ($1, $2) returning id, created_at, updated_at"
 	stmt, err := ps.DB.PrepareContext(ctx, statement)
 	if err != nil {
 		return
 	}
 	defer stmt.Close()
-	err = stmt.QueryRow(post.Content, post.Author).Scan(&post.ID)
+	err = stmt.QueryRowContext(ctx, post.Content, post.Author).Scan(&post.ID, &post.CreatedAt, &post.UpdatedAt)
 	return
 }
 
 // Update a post
 func (ps *PostService) Update(ctx context.Context, post *domains.Post) (err error) {
-	_, err = ps.DB.ExecContext(ctx, "update posts set content = $2, author = $3, updated_at = $4 where id = $1", post.ID, post.Content, post.Author, time.Now())
+	err = ps.DB.QueryRowContext(ctx, "update posts set content = $2, author = $3 where id = $1 returning updated_at",
+		post.ID, post.Content, post.Author).Scan(&post.UpdatedAt)
 	return
 }
 
