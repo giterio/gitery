@@ -36,20 +36,21 @@ func (route *Route) BindContext(r *http.Request) *http.Request {
 }
 
 // Shift is to get the first parameter from route path and generate next sub-route
-func (route *Route) Shift() (string, *Route) {
-	param, subPath := shiftPath(route.Path)
+func (route *Route) Shift() (resource string, subRoute *Route) {
+	resource, subPath := shiftPath(route.Path)
 	if subPath == "/" {
-		return param, nil
+		return
 	}
-	return param, &Route{Path: subPath}
+	subRoute = &Route{Path: subPath}
+	return
 }
 
 // ExtractRoute is to extract path parameter from context and generate next sub-route
-func ExtractRoute(ctx context.Context) (string, *Route) {
+func ExtractRoute(ctx context.Context) (resource string, subRoute *Route) {
 	rv := ctx.Value(routeKey)
 	if route, ok := rv.(*Route); ok {
-		param, subRoute := route.Shift()
-		return param, subRoute
+		resource, subRoute = route.Shift()
+		return
 	}
-	return "", nil
+	return
 }
