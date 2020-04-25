@@ -36,8 +36,8 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // GET /post/1
 func (h *PostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
-	param, _ := ExtractRoute(ctx)
-	id, err := strconv.Atoi(param)
+	resource, _ := ExtractRoute(ctx)
+	id, err := strconv.Atoi(resource)
 	if err != nil {
 		return
 	}
@@ -70,8 +70,8 @@ func (h *PostHandler) handlePost(w http.ResponseWriter, r *http.Request) (err er
 // PUT /post/1
 func (h *PostHandler) handlePut(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
-	param, _ := ExtractRoute(ctx)
-	id, err := strconv.Atoi(param)
+	resource, _ := ExtractRoute(ctx)
+	id, err := strconv.Atoi(resource)
 	if err != nil {
 		return
 	}
@@ -96,8 +96,8 @@ func (h *PostHandler) handlePut(w http.ResponseWriter, r *http.Request) (err err
 // DELETE /post/1
 func (h *PostHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
-	param, _ := ExtractRoute(ctx)
-	id, err := strconv.Atoi(param)
+	resource, _ := ExtractRoute(ctx)
+	id, err := strconv.Atoi(resource)
 	if err != nil {
 		return
 	}

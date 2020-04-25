@@ -51,8 +51,8 @@ func (h *CommentHandler) handlePost(w http.ResponseWriter, r *http.Request) (err
 // PUT /comment/1
 func (h *CommentHandler) handlePut(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
-	param, _ := ExtractRoute(ctx)
-	id, err := strconv.Atoi(param)
+	resource, _ := ExtractRoute(ctx)
+	id, err := strconv.Atoi(resource)
 	comment, err := h.Model.Fetch(ctx, id)
 	if err != nil {
 		return
@@ -74,8 +74,8 @@ func (h *CommentHandler) handlePut(w http.ResponseWriter, r *http.Request) (err 
 // DELETE /comment/1
 func (h *CommentHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
-	param, _ := ExtractRoute(ctx)
-	id, err := strconv.Atoi(param)
+	resource, _ := ExtractRoute(ctx)
+	id, err := strconv.Atoi(resource)
 	if err != nil {
 		return
 	}
