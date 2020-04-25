@@ -5,13 +5,13 @@ import (
 	"net/http"
 	"strconv"
 
-	"gitery/internal/domains"
+	"gitery/internal/prototype"
 	"gitery/internal/views"
 )
 
 // PostHandler ...
 type PostHandler struct {
-	Model domains.PostService
+	Model prototype.PostService
 }
 
 func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -55,7 +55,7 @@ func (h *PostHandler) handlePost(w http.ResponseWriter, r *http.Request) (err er
 	len := r.ContentLength
 	body := make([]byte, len)
 	r.Body.Read(body)
-	post := domains.Post{}
+	post := prototype.Post{}
 	json.Unmarshal(body, &post)
 	ctx := r.Context()
 	err = h.Model.Create(ctx, &post)

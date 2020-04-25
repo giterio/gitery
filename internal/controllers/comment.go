@@ -5,13 +5,13 @@ import (
 	"net/http"
 	"strconv"
 
-	"gitery/internal/domains"
+	"gitery/internal/prototype"
 	"gitery/internal/views"
 )
 
 // CommentHandler ...
 type CommentHandler struct {
-	Model domains.CommentService
+	Model prototype.CommentService
 }
 
 func (h *CommentHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -36,7 +36,7 @@ func (h *CommentHandler) handlePost(w http.ResponseWriter, r *http.Request) (err
 	len := r.ContentLength
 	body := make([]byte, len)
 	r.Body.Read(body)
-	comment := domains.Comment{}
+	comment := prototype.Comment{}
 	json.Unmarshal(body, &comment)
 	ctx := r.Context()
 	err = h.Model.Create(ctx, &comment)

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"gitery/internal/domains"
+	"gitery/internal/prototype"
 	"gitery/test/testdata"
 )
 
@@ -24,7 +24,7 @@ func TestHandleGet(t *testing.T) {
 	if writer.Code != 200 {
 		t.Errorf("Response code is %v", writer.Code)
 	}
-	var post domains.Post
+	var post prototype.Post
 	json.Unmarshal(writer.Body.Bytes(), &post)
 	if *post.ID != 1 {
 		t.Errorf("Cannot retrieve JSON post")
@@ -45,7 +45,7 @@ func TestHandlePost(t *testing.T) {
 	if writer.Code != 200 {
 		t.Errorf("Response code is %v", writer.Code)
 	}
-	var post domains.Post
+	var post prototype.Post
 	json.Unmarshal(writer.Body.Bytes(), &post)
 	if post.Content != "Updated post" || post.Author != "Sau Sheong" {
 		t.Errorf("Post not match, Content: %s, Author: %s", post.Content, post.Author)

@@ -1,4 +1,4 @@
-package domains
+package prototype
 
 import (
 	"context"

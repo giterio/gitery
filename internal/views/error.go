@@ -1,36 +1,30 @@
 package views
 
 import (
-	"context"
-	"fmt"
-	"runtime"
+	"encoding/json"
+	"gitery/internal/models"
+	"net/http"
 	"time"
 )
 
 // ErrorView is a custom error
 type ErrorView struct {
-	Ok          bool      `json:"ok"`
-	StatusCode  int       `json:"status_code"`
-	ErrorCode   int       `json:"error_code"`
-	Description string    `json:"description"`
-	Timestamp   time.Time `json:"timestamp"`
-	trace       string
+	models.Error           // using anonymous member to get flat json structure
+	Ok           bool      `json:"ok"`
+	Timestamp    time.Time `json:"timestamp"`
 }
 
-func createError(ctx context.Context, statusCode int, errorCode int, description string, err error) ErrorView {
-	pc, file, line, _ := runtime.Caller(2)
-	funcName := runtime.FuncForPC(pc).Name()
-	trace := fmt.Sprintf("[ERROR %d] %s\n%s:%d %s", errorCode, description, file, line, funcName)
+// RenderError ...
+func RenderError(w http.ResponseWriter, e models.Error) {
+	errorView := ErrorView{
+		Error:     e,
+		Ok:        false,
+		Timestamp: time.Now(),
+	}
+	output, err := json.MarshalIndent(errorView, "", "\t\t")
 	if err != nil {
-		trace = trace + "\n" + err.Error()
+		return
 	}
-
-	return ErrorView{
-		Ok:          false,
-		StatusCode:  statusCode,
-		ErrorCode:   errorCode,
-		Description: description,
-		Timestamp:   time.Now(),
-		trace:       trace,
-	}
+	_, err = w.Write(output)
+	return
 }
