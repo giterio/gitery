@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"gitery/internal/models"
 	"gitery/internal/prototype"
 	"gitery/internal/views"
 )
@@ -50,8 +51,8 @@ func (h *CommentHandler) handlePost(w http.ResponseWriter, r *http.Request) (err
 // Update a comment
 // PUT /comment/1
 func (h *CommentHandler) handlePut(w http.ResponseWriter, r *http.Request) (err error) {
+	resource, _ := models.ShiftRoute(r)
 	ctx := r.Context()
-	resource, _ := ExtractRoute(ctx)
 	id, err := strconv.Atoi(resource)
 	comment, err := h.Model.Fetch(ctx, id)
 	if err != nil {
@@ -73,8 +74,8 @@ func (h *CommentHandler) handlePut(w http.ResponseWriter, r *http.Request) (err 
 // Delete a comment
 // DELETE /comment/1
 func (h *CommentHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
+	resource, _ := models.ShiftRoute(r)
 	ctx := r.Context()
-	resource, _ := ExtractRoute(ctx)
 	id, err := strconv.Atoi(resource)
 	if err != nil {
 		return

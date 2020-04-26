@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"gitery/internal/models"
 	"gitery/internal/prototype"
 	"gitery/internal/views"
 )
@@ -27,7 +28,9 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err = h.handleDelete(w, r)
 	}
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		// http.Error(w, err.Error(), http.StatusInternalServerError)
+		e := models.BubbleError(r.Context(), http.StatusInternalServerError, "Internal Error", err)
+		views.RenderError(w, e)
 		return
 	}
 }
@@ -35,8 +38,8 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // Retrieve a post
 // GET /post/1
 func (h *PostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err error) {
+	resource, _ := models.ShiftRoute(r)
 	ctx := r.Context()
-	resource, _ := ExtractRoute(ctx)
 	id, err := strconv.Atoi(resource)
 	if err != nil {
 		return
@@ -69,8 +72,8 @@ func (h *PostHandler) handlePost(w http.ResponseWriter, r *http.Request) (err er
 // Update a post
 // PUT /post/1
 func (h *PostHandler) handlePut(w http.ResponseWriter, r *http.Request) (err error) {
+	resource, _ := models.ShiftRoute(r)
 	ctx := r.Context()
-	resource, _ := ExtractRoute(ctx)
 	id, err := strconv.Atoi(resource)
 	if err != nil {
 		return
@@ -95,8 +98,8 @@ func (h *PostHandler) handlePut(w http.ResponseWriter, r *http.Request) (err err
 // Delete a post
 // DELETE /post/1
 func (h *PostHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
+	resource, _ := models.ShiftRoute(r)
 	ctx := r.Context()
-	resource, _ := ExtractRoute(ctx)
 	id, err := strconv.Atoi(resource)
 	if err != nil {
 		return

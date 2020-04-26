@@ -27,7 +27,7 @@ func (ps *PostService) Fetch(ctx context.Context, id int) (post prototype.Post, 
 	}
 	for rows.Next() {
 		comment := prototype.Comment{PostID: &id}
-		err = rows.Scan(&comment.ID, &comment.Content, &comment.Author)
+		err = rows.Scan(&comment.ID, &comment.Content, &comment.Author, &comment.CreatedAt, &comment.UpdatedAt)
 		if err != nil {
 			return
 		}
@@ -45,6 +45,7 @@ func (ps *PostService) Create(ctx context.Context, post *prototype.Post) (err er
 	}
 	defer stmt.Close()
 	err = stmt.QueryRowContext(ctx, post.Content, post.Author).Scan(&post.ID, &post.CreatedAt, &post.UpdatedAt)
+	post.Comments = []prototype.Comment{}
 	return
 }
 

@@ -1,4 +1,4 @@
-package controllers
+package models
 
 import (
 	"context"
@@ -26,17 +26,17 @@ func shiftPath(p string) (head, tail string) {
 
 // Route ...
 type Route struct {
-	Path string
+	Path string // remaining path to explore
 }
 
-// BindContext is to bind the route with request's context
-func (route *Route) BindContext(r *http.Request) *http.Request {
+// infestContext is to bind request's context with the route
+func (route *Route) infestContext(r *http.Request) *http.Request {
 	ctx := context.WithValue(r.Context(), routeKey, route)
 	return r.WithContext(ctx)
 }
 
 // Shift is to get the first parameter from route path and generate next sub-route
-func (route *Route) Shift() (resource string, subRoute *Route) {
+func (route *Route) shift() (resource string, subRoute *Route) {
 	resource, subPath := shiftPath(route.Path)
 	if subPath == "/" {
 		return
@@ -45,12 +45,18 @@ func (route *Route) Shift() (resource string, subRoute *Route) {
 	return
 }
 
-// ExtractRoute is to extract path parameter from context and generate next sub-route
-func ExtractRoute(ctx context.Context) (resource string, subRoute *Route) {
+// ShiftRoute is to shift resource name from request and generate next sub-route
+func ShiftRoute(r *http.Request) (resource string, rn *http.Request) {
+	ctx := r.Context()
 	rv := ctx.Value(routeKey)
-	if route, ok := rv.(*Route); ok {
-		resource, subRoute = route.Shift()
-		return
+	route, ok := rv.(*Route)
+	if !ok {
+		// create a Route with full path
+		route = &Route{Path: r.URL.Path}
 	}
+	// extract the first parameter and generate a sub-route
+	resource, subRoute := route.shift()
+	// bind the sub-route with request's context
+	rn = subRoute.infestContext(r)
 	return
 }

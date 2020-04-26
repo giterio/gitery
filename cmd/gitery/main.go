@@ -35,7 +35,7 @@ func main() {
 		panic(err)
 	}
 
-	router := &controllers.Router{
+	router := &controllers.Root{
 		PostHandler:    &controllers.PostHandler{Model: &models.PostService{DB: db}},
 		CommentHandler: &controllers.CommentHandler{Model: &models.CommentService{DB: db}},
 	}
