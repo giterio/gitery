@@ -1,10 +1,13 @@
 package views
 
 import (
+	"context"
 	"encoding/json"
-	"gitery/internal/models"
+	"log"
 	"net/http"
 	"time"
+
+	"gitery/internal/models"
 )
 
 // ErrorView is a custom error
@@ -15,7 +18,7 @@ type ErrorView struct {
 }
 
 // RenderError ...
-func RenderError(w http.ResponseWriter, e models.Error) {
+func RenderError(ctx context.Context, w http.ResponseWriter, e models.Error) {
 	errorView := ErrorView{
 		Error:     e,
 		Ok:        false,
@@ -23,8 +26,15 @@ func RenderError(w http.ResponseWriter, e models.Error) {
 	}
 	output, err := json.MarshalIndent(errorView, "", "\t\t")
 	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Panicln(err)
 		return
 	}
+
+	w.WriteHeader(e.StatusCode)
 	_, err = w.Write(output)
-	return
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Panicln(err)
+	}
 }

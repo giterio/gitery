@@ -26,25 +26,35 @@ func (h *CommentHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err = h.handleDelete(w, r)
 	}
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		ctx := r.Context()
+		e := models.ServerError(ctx, err)
+		views.RenderError(ctx, w, e)
 	}
 }
 
 // Create a comment
 // POST /comment/
 func (h *CommentHandler) handlePost(w http.ResponseWriter, r *http.Request) (err error) {
+	ctx := r.Context()
 	len := r.ContentLength
 	body := make([]byte, len)
-	r.Body.Read(body)
-	comment := prototype.Comment{}
-	json.Unmarshal(body, &comment)
-	ctx := r.Context()
-	err = h.Model.Create(ctx, &comment)
+	_, err = r.Body.Read(body)
 	if err != nil {
+		err = models.BadRequestError(ctx)
 		return
 	}
-	err = views.Render(w, comment)
+	comment := prototype.Comment{}
+	err = json.Unmarshal(body, &comment)
+	if err != nil {
+		err = models.BadRequestError(ctx)
+		return
+	}
+	err = h.Model.Create(ctx, &comment)
+	if err != nil {
+		err = models.TransactionError(ctx, err)
+		return
+	}
+	err = views.Render(ctx, w, comment)
 	return
 }
 
@@ -54,20 +64,30 @@ func (h *CommentHandler) handlePut(w http.ResponseWriter, r *http.Request) (err 
 	resource, _ := models.ShiftRoute(r)
 	ctx := r.Context()
 	id, err := strconv.Atoi(resource)
+	if err != nil {
+		err = models.BadRequestError(ctx)
+		return
+	}
 	comment, err := h.Model.Fetch(ctx, id)
 	if err != nil {
+		err = models.TransactionError(ctx, err)
 		return
 	}
 	len := r.ContentLength
 	body := make([]byte, len)
 	r.Body.Read(body)
 	// parse json from request body
-	json.Unmarshal(body, &comment)
-	err = h.Model.Update(ctx, &comment)
+	err = json.Unmarshal(body, &comment)
 	if err != nil {
+		err = models.BadRequestError(ctx)
 		return
 	}
-	err = views.Render(w, comment)
+	err = h.Model.Update(ctx, &comment)
+	if err != nil {
+		err = models.TransactionError(ctx, err)
+		return
+	}
+	err = views.Render(ctx, w, comment)
 	return
 }
 
@@ -78,10 +98,12 @@ func (h *CommentHandler) handleDelete(w http.ResponseWriter, r *http.Request) (e
 	ctx := r.Context()
 	id, err := strconv.Atoi(resource)
 	if err != nil {
+		err = models.BadRequestError(ctx)
 		return
 	}
 	err = h.Model.Delete(ctx, id)
 	if err != nil {
+		err = models.TransactionError(ctx, err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)

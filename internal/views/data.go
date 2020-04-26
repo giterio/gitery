@@ -1,6 +1,7 @@
 package views
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"time"
@@ -14,7 +15,11 @@ type DataView struct {
 }
 
 // Render ...
-func Render(w http.ResponseWriter, data interface{}) (err error) {
+func Render(ctx context.Context, w http.ResponseWriter, data interface{}) (err error) {
+	if data == nil {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
 	dataView := DataView{
 		Data:      data,
 		Ok:        true,
@@ -22,8 +27,13 @@ func Render(w http.ResponseWriter, data interface{}) (err error) {
 	}
 	output, err := json.MarshalIndent(dataView, "", "\t\t")
 	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	_, err = w.Write(output)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	return
 }

@@ -28,10 +28,9 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err = h.handleDelete(w, r)
 	}
 	if err != nil {
-		// http.Error(w, err.Error(), http.StatusInternalServerError)
-		e := models.BubbleError(r.Context(), http.StatusInternalServerError, "Internal Error", err)
-		views.RenderError(w, e)
-		return
+		ctx := r.Context()
+		e := models.ServerError(ctx, err)
+		views.RenderError(ctx, w, e)
 	}
 }
 
@@ -42,30 +41,41 @@ func (h *PostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err err
 	ctx := r.Context()
 	id, err := strconv.Atoi(resource)
 	if err != nil {
+		err = models.BadRequestError(ctx)
 		return
 	}
 	post, err := h.Model.Fetch(ctx, id)
 	if err != nil {
+		err = models.TransactionError(ctx, err)
 		return
 	}
-	err = views.Render(w, post)
+	err = views.Render(ctx, w, post)
 	return
 }
 
 // Create a post
 // POST /post/
 func (h *PostHandler) handlePost(w http.ResponseWriter, r *http.Request) (err error) {
+	ctx := r.Context()
 	len := r.ContentLength
 	body := make([]byte, len)
-	r.Body.Read(body)
-	post := prototype.Post{}
-	json.Unmarshal(body, &post)
-	ctx := r.Context()
-	err = h.Model.Create(ctx, &post)
+	_, err = r.Body.Read(body)
 	if err != nil {
+		err = models.BadRequestError(ctx)
 		return
 	}
-	err = views.Render(w, post)
+	post := prototype.Post{}
+	err = json.Unmarshal(body, &post)
+	if err != nil {
+		err = models.BadRequestError(ctx)
+		return
+	}
+	err = h.Model.Create(ctx, &post)
+	if err != nil {
+		err = models.TransactionError(ctx, err)
+		return
+	}
+	err = views.Render(ctx, w, post)
 	return
 }
 
@@ -76,22 +86,33 @@ func (h *PostHandler) handlePut(w http.ResponseWriter, r *http.Request) (err err
 	ctx := r.Context()
 	id, err := strconv.Atoi(resource)
 	if err != nil {
+		err = models.BadRequestError(ctx)
 		return
 	}
 	post, err := h.Model.Fetch(ctx, id)
 	if err != nil {
+		err = models.TransactionError(ctx, err)
 		return
 	}
 	len := r.ContentLength
 	body := make([]byte, len)
-	r.Body.Read(body)
-	// parse json from request body
-	json.Unmarshal(body, &post)
-	err = h.Model.Update(ctx, &post)
+	_, err = r.Body.Read(body)
 	if err != nil {
+		err = models.BadRequestError(ctx)
 		return
 	}
-	err = views.Render(w, post)
+	// parse json from request body
+	err = json.Unmarshal(body, &post)
+	if err != nil {
+		err = models.BadRequestError(ctx)
+		return
+	}
+	err = h.Model.Update(ctx, &post)
+	if err != nil {
+		err = models.TransactionError(ctx, err)
+		return
+	}
+	err = views.Render(ctx, w, post)
 	return
 }
 
@@ -102,10 +123,12 @@ func (h *PostHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err 
 	ctx := r.Context()
 	id, err := strconv.Atoi(resource)
 	if err != nil {
+		err = models.BadRequestError(ctx)
 		return
 	}
 	err = h.Model.Delete(ctx, id)
 	if err != nil {
+		err = models.TransactionError(ctx, err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)

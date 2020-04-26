@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"gitery/internal/models"
+	"gitery/internal/views"
 )
 
 // Root is the root handler of comming request
@@ -22,6 +23,8 @@ func (h *Root) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.CommentHandler.ServeHTTP(w, r)
 		return
 	default:
-		http.NotFound(w, r)
+		ctx := r.Context()
+		err := models.NotFoundError(ctx)
+		views.RenderError(ctx, w, err)
 	}
 }
