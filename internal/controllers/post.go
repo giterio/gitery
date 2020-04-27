@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"io"
 	"net/http"
 	"strconv"
 
@@ -58,15 +57,8 @@ func (h *PostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err err
 // POST /post/
 func (h *PostHandler) handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
-	len := r.ContentLength
-	body := make([]byte, len)
-	_, err = r.Body.Read(body)
-	if err != io.EOF {
-		err = models.BadRequestError(ctx)
-		return
-	}
 	post := prototypes.Post{}
-	err = json.Unmarshal(body, &post)
+	err = json.NewDecoder(r.Body).Decode(&post)
 	if err != nil {
 		err = models.BadRequestError(ctx)
 		return
@@ -95,15 +87,7 @@ func (h *PostHandler) handlePut(w http.ResponseWriter, r *http.Request) (err err
 		err = models.TransactionError(ctx, err)
 		return
 	}
-	len := r.ContentLength
-	body := make([]byte, len)
-	_, err = r.Body.Read(body)
-	if err != io.EOF {
-		err = models.BadRequestError(ctx)
-		return
-	}
-	// parse json from request body
-	err = json.Unmarshal(body, &post)
+	err = json.NewDecoder(r.Body).Decode(&post)
 	if err != nil {
 		err = models.BadRequestError(ctx)
 		return

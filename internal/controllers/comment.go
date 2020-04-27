@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"io"
 	"net/http"
 	"strconv"
 
@@ -37,15 +36,8 @@ func (h *CommentHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // POST /comment/
 func (h *CommentHandler) handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
-	len := r.ContentLength
-	body := make([]byte, len)
-	_, err = r.Body.Read(body)
-	if err != io.EOF {
-		err = models.BadRequestError(ctx)
-		return
-	}
 	comment := prototypes.Comment{}
-	err = json.Unmarshal(body, &comment)
+	err = json.NewDecoder(r.Body).Decode(&comment)
 	if err != nil {
 		err = models.BadRequestError(ctx)
 		return
@@ -74,15 +66,7 @@ func (h *CommentHandler) handlePut(w http.ResponseWriter, r *http.Request) (err 
 		err = models.TransactionError(ctx, err)
 		return
 	}
-	len := r.ContentLength
-	body := make([]byte, len)
-	_, err = r.Body.Read(body)
-	if err != io.EOF {
-		err = models.BadRequestError(ctx)
-		return
-	}
-	// parse json from request body
-	err = json.Unmarshal(body, &comment)
+	err = json.NewDecoder(r.Body).Decode(&comment)
 	if err != nil {
 		err = models.BadRequestError(ctx)
 		return
