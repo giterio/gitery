@@ -1,4 +1,4 @@
-package prototype
+package prototypes
 
 import (
 	"context"
@@ -10,9 +10,9 @@ type Post struct {
 	ID        *int      `json:"id"`
 	Content   string    `json:"content"`
 	Author    string    `json:"author"`
-	Comments  []Comment `json:"comments"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	Comments  []Comment `json:"-"` // reconstruct in PostView
+	CreatedAt time.Time `json:"-"` // reconstruct in PostView
+	UpdatedAt time.Time `json:"-"` // reconstruct in PostView
 }
 
 // PostService ...

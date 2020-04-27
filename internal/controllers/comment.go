@@ -2,17 +2,18 @@ package controllers
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 	"strconv"
 
 	"gitery/internal/models"
-	"gitery/internal/prototype"
+	"gitery/internal/prototypes"
 	"gitery/internal/views"
 )
 
 // CommentHandler ...
 type CommentHandler struct {
-	Model prototype.CommentService
+	Model prototypes.CommentService
 }
 
 func (h *CommentHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -39,11 +40,11 @@ func (h *CommentHandler) handlePost(w http.ResponseWriter, r *http.Request) (err
 	len := r.ContentLength
 	body := make([]byte, len)
 	_, err = r.Body.Read(body)
-	if err != nil {
+	if err != io.EOF {
 		err = models.BadRequestError(ctx)
 		return
 	}
-	comment := prototype.Comment{}
+	comment := prototypes.Comment{}
 	err = json.Unmarshal(body, &comment)
 	if err != nil {
 		err = models.BadRequestError(ctx)
@@ -54,7 +55,7 @@ func (h *CommentHandler) handlePost(w http.ResponseWriter, r *http.Request) (err
 		err = models.TransactionError(ctx, err)
 		return
 	}
-	err = views.Render(ctx, w, comment)
+	err = views.RenderComment(ctx, w, comment)
 	return
 }
 
@@ -75,7 +76,11 @@ func (h *CommentHandler) handlePut(w http.ResponseWriter, r *http.Request) (err 
 	}
 	len := r.ContentLength
 	body := make([]byte, len)
-	r.Body.Read(body)
+	_, err = r.Body.Read(body)
+	if err != io.EOF {
+		err = models.BadRequestError(ctx)
+		return
+	}
 	// parse json from request body
 	err = json.Unmarshal(body, &comment)
 	if err != nil {
@@ -87,7 +92,7 @@ func (h *CommentHandler) handlePut(w http.ResponseWriter, r *http.Request) (err 
 		err = models.TransactionError(ctx, err)
 		return
 	}
-	err = views.Render(ctx, w, comment)
+	err = views.RenderComment(ctx, w, comment)
 	return
 }
 

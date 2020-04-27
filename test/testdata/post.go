@@ -2,25 +2,25 @@ package testdata
 
 import (
 	"context"
-	"gitery/internal/prototype"
+	"gitery/internal/prototypes"
 )
 
 // FakePostService ...
 type FakePostService struct{}
 
 // Fetch ...
-func (ps *FakePostService) Fetch(ctx context.Context, id int) (post prototype.Post, err error) {
-	post = prototype.Post{ID: &id}
+func (ps *FakePostService) Fetch(ctx context.Context, id int) (post prototypes.Post, err error) {
+	post = prototypes.Post{ID: &id}
 	return
 }
 
 // Create ...
-func (ps *FakePostService) Create(ctx context.Context, post *prototype.Post) (err error) {
+func (ps *FakePostService) Create(ctx context.Context, post *prototypes.Post) (err error) {
 	return
 }
 
 // Update ...
-func (ps *FakePostService) Update(ctx context.Context, post *prototype.Post) (err error) {
+func (ps *FakePostService) Update(ctx context.Context, post *prototypes.Post) (err error) {
 	return
 }
 

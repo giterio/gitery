@@ -5,24 +5,24 @@ import (
 	"database/sql"
 	"errors"
 
-	"gitery/internal/prototype"
+	"gitery/internal/prototypes"
 )
 
-// CommentService implement the prototype.CommentService interface
+// CommentService implement the prototypes.CommentService interface
 type CommentService struct {
 	DB *sql.DB
 }
 
 // Fetch single comment
-func (cs *CommentService) Fetch(ctx context.Context, id int) (comment prototype.Comment, err error) {
-	comment = prototype.Comment{}
+func (cs *CommentService) Fetch(ctx context.Context, id int) (comment prototypes.Comment, err error) {
+	comment = prototypes.Comment{}
 	err = cs.DB.QueryRowContext(ctx, "select id, content, author, post_id, created_at, updated_at from comments where id = $1", id).Scan(
 		&comment.ID, &comment.Content, &comment.Author, &comment.PostID, &comment.CreatedAt, &comment.UpdatedAt)
 	return
 }
 
 // Create ...
-func (cs *CommentService) Create(ctx context.Context, comment *prototype.Comment) (err error) {
+func (cs *CommentService) Create(ctx context.Context, comment *prototypes.Comment) (err error) {
 	if comment.PostID == nil {
 		err = errors.New("Post not found")
 		return
@@ -33,7 +33,7 @@ func (cs *CommentService) Create(ctx context.Context, comment *prototype.Comment
 }
 
 // Update a comment
-func (cs *CommentService) Update(ctx context.Context, comment *prototype.Comment) (err error) {
+func (cs *CommentService) Update(ctx context.Context, comment *prototypes.Comment) (err error) {
 	err = cs.DB.QueryRowContext(ctx, "update comments set content = $2, author = $3, updated_at = $4 where id = $1 returning updated_at",
 		comment.ID, comment.Content, comment.Author).Scan(&comment.UpdatedAt)
 	return

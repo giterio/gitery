@@ -5,16 +5,15 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"time"
 
 	"gitery/internal/models"
 )
 
 // ErrorView is a custom error
 type ErrorView struct {
-	models.Error           // using anonymous member to get flat json structure
-	Ok           bool      `json:"ok"`
-	Timestamp    time.Time `json:"timestamp"`
+	models.Error       // using anonymous member to get flat json structure
+	Ok           bool  `json:"ok"`
+	Timestamp    int64 `json:"timestamp"`
 }
 
 // RenderError ...
@@ -22,7 +21,7 @@ func RenderError(ctx context.Context, w http.ResponseWriter, e models.Error) {
 	errorView := ErrorView{
 		Error:     e,
 		Ok:        false,
-		Timestamp: time.Now(),
+		Timestamp: e.Timestamp.Unix(),
 	}
 	output, err := json.MarshalIndent(errorView, "", "\t\t")
 	if err != nil {

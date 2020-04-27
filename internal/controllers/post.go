@@ -2,17 +2,18 @@ package controllers
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 	"strconv"
 
 	"gitery/internal/models"
-	"gitery/internal/prototype"
+	"gitery/internal/prototypes"
 	"gitery/internal/views"
 )
 
 // PostHandler ...
 type PostHandler struct {
-	Model prototype.PostService
+	Model prototypes.PostService
 }
 
 func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -49,7 +50,7 @@ func (h *PostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err err
 		err = models.TransactionError(ctx, err)
 		return
 	}
-	err = views.Render(ctx, w, post)
+	err = views.RenderPost(ctx, w, post)
 	return
 }
 
@@ -60,11 +61,11 @@ func (h *PostHandler) handlePost(w http.ResponseWriter, r *http.Request) (err er
 	len := r.ContentLength
 	body := make([]byte, len)
 	_, err = r.Body.Read(body)
-	if err != nil {
+	if err != io.EOF {
 		err = models.BadRequestError(ctx)
 		return
 	}
-	post := prototype.Post{}
+	post := prototypes.Post{}
 	err = json.Unmarshal(body, &post)
 	if err != nil {
 		err = models.BadRequestError(ctx)
@@ -75,7 +76,7 @@ func (h *PostHandler) handlePost(w http.ResponseWriter, r *http.Request) (err er
 		err = models.TransactionError(ctx, err)
 		return
 	}
-	err = views.Render(ctx, w, post)
+	err = views.RenderPost(ctx, w, post)
 	return
 }
 
@@ -97,7 +98,7 @@ func (h *PostHandler) handlePut(w http.ResponseWriter, r *http.Request) (err err
 	len := r.ContentLength
 	body := make([]byte, len)
 	_, err = r.Body.Read(body)
-	if err != nil {
+	if err != io.EOF {
 		err = models.BadRequestError(ctx)
 		return
 	}
@@ -112,7 +113,7 @@ func (h *PostHandler) handlePut(w http.ResponseWriter, r *http.Request) (err err
 		err = models.TransactionError(ctx, err)
 		return
 	}
-	err = views.Render(ctx, w, post)
+	err = views.RenderPost(ctx, w, post)
 	return
 }
 

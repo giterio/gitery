@@ -15,8 +15,8 @@ type Error struct {
 	StatusCode  int               `json:"status_code"`
 	ErrorCode   int               `json:"error_code"`
 	Description string            `json:"description"`
-	Timestamp   time.Time         `json:"timestamp"`
 	Trace       map[string]string `json:"trace"`
+	Timestamp   time.Time
 }
 
 // Error ...
