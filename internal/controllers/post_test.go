@@ -7,13 +7,13 @@ import (
 	"strings"
 	"testing"
 
-	"gitery/internal/domains"
+	"gitery/internal/prototypes"
 	"gitery/test/testdata"
 )
 
 func TestHandleGet(t *testing.T) {
 	mux := http.NewServeMux()
-	mux.Handle("/", &Router{
+	mux.Handle("/", &Root{
 		PostHandler: &PostHandler{Model: &testdata.FakePostService{}},
 	})
 
@@ -24,7 +24,7 @@ func TestHandleGet(t *testing.T) {
 	if writer.Code != 200 {
 		t.Errorf("Response code is %v", writer.Code)
 	}
-	var post domains.Post
+	var post prototypes.Post
 	json.Unmarshal(writer.Body.Bytes(), &post)
 	if *post.ID != 1 {
 		t.Errorf("Cannot retrieve JSON post")
@@ -33,7 +33,7 @@ func TestHandleGet(t *testing.T) {
 
 func TestHandlePost(t *testing.T) {
 	mux := http.NewServeMux()
-	mux.Handle("/", &Router{
+	mux.Handle("/", &Root{
 		PostHandler: &PostHandler{Model: &testdata.FakePostService{}},
 	})
 
@@ -45,7 +45,7 @@ func TestHandlePost(t *testing.T) {
 	if writer.Code != 200 {
 		t.Errorf("Response code is %v", writer.Code)
 	}
-	var post domains.Post
+	var post prototypes.Post
 	json.Unmarshal(writer.Body.Bytes(), &post)
 	if post.Content != "Updated post" || post.Author != "Sau Sheong" {
 		t.Errorf("Post not match, Content: %s, Author: %s", post.Content, post.Author)

@@ -2,15 +2,18 @@ package controllers
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 	"strconv"
 
-	"gitery/internal/domains"
+	"gitery/internal/models"
+	"gitery/internal/prototypes"
+	"gitery/internal/views"
 )
 
 // CommentHandler ...
 type CommentHandler struct {
-	Model domains.CommentService
+	Model prototypes.CommentService
 }
 
 func (h *CommentHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -24,70 +27,88 @@ func (h *CommentHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err = h.handleDelete(w, r)
 	}
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		ctx := r.Context()
+		e := models.ServerError(ctx, err)
+		views.RenderError(ctx, w, e)
 	}
 }
 
 // Create a comment
 // POST /comment/
 func (h *CommentHandler) handlePost(w http.ResponseWriter, r *http.Request) (err error) {
+	ctx := r.Context()
 	len := r.ContentLength
 	body := make([]byte, len)
-	r.Body.Read(body)
-	comment := domains.Comment{}
-	json.Unmarshal(body, &comment)
-	ctx := r.Context()
+	_, err = r.Body.Read(body)
+	if err != io.EOF {
+		err = models.BadRequestError(ctx)
+		return
+	}
+	comment := prototypes.Comment{}
+	err = json.Unmarshal(body, &comment)
+	if err != nil {
+		err = models.BadRequestError(ctx)
+		return
+	}
 	err = h.Model.Create(ctx, &comment)
 	if err != nil {
+		err = models.TransactionError(ctx, err)
 		return
 	}
-	output, err := json.MarshalIndent(comment, "", "\t\t")
-	if err != nil {
-		return
-	}
-	w.Write(output)
+	err = views.RenderComment(ctx, w, comment)
 	return
 }
 
 // Update a comment
 // PUT /comment/1
 func (h *CommentHandler) handlePut(w http.ResponseWriter, r *http.Request) (err error) {
+	resource, _ := models.ShiftRoute(r)
 	ctx := r.Context()
-	param, _ := ExtractRoute(ctx)
-	id, err := strconv.Atoi(param)
+	id, err := strconv.Atoi(resource)
+	if err != nil {
+		err = models.BadRequestError(ctx)
+		return
+	}
 	comment, err := h.Model.Fetch(ctx, id)
 	if err != nil {
+		err = models.TransactionError(ctx, err)
 		return
 	}
 	len := r.ContentLength
 	body := make([]byte, len)
-	r.Body.Read(body)
+	_, err = r.Body.Read(body)
+	if err != io.EOF {
+		err = models.BadRequestError(ctx)
+		return
+	}
 	// parse json from request body
-	json.Unmarshal(body, &comment)
+	err = json.Unmarshal(body, &comment)
+	if err != nil {
+		err = models.BadRequestError(ctx)
+		return
+	}
 	err = h.Model.Update(ctx, &comment)
 	if err != nil {
+		err = models.TransactionError(ctx, err)
 		return
 	}
-	output, err := json.MarshalIndent(comment, "", "\t\t")
-	if err != nil {
-		return
-	}
-	w.Write(output)
+	err = views.RenderComment(ctx, w, comment)
 	return
 }
 
 // Delete a comment
 // DELETE /comment/1
 func (h *CommentHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
+	resource, _ := models.ShiftRoute(r)
 	ctx := r.Context()
-	param, _ := ExtractRoute(ctx)
-	id, err := strconv.Atoi(param)
+	id, err := strconv.Atoi(resource)
 	if err != nil {
+		err = models.BadRequestError(ctx)
 		return
 	}
 	err = h.Model.Delete(ctx, id)
 	if err != nil {
+		err = models.TransactionError(ctx, err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)

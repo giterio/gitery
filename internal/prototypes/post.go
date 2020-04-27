@@ -1,15 +1,18 @@
-package domains
+package prototypes
 
 import (
 	"context"
+	"time"
 )
 
 // Post ...
 type Post struct {
-	ID       *int      `json:"id"`
-	Content  string    `json:"content"`
-	Author   string    `json:"author"`
-	Comments []Comment `json:"comments"`
+	ID        *int      `json:"id"`
+	Content   string    `json:"content"`
+	Author    string    `json:"author"`
+	Comments  []Comment `json:"-"` // reconstruct in PostView
+	CreatedAt time.Time `json:"-"` // reconstruct in PostView
+	UpdatedAt time.Time `json:"-"` // reconstruct in PostView
 }
 
 // PostService ...

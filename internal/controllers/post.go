@@ -2,15 +2,18 @@ package controllers
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 	"strconv"
 
-	"gitery/internal/domains"
+	"gitery/internal/models"
+	"gitery/internal/prototypes"
+	"gitery/internal/views"
 )
 
 // PostHandler ...
 type PostHandler struct {
-	Model domains.PostService
+	Model prototypes.PostService
 }
 
 func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -26,94 +29,107 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err = h.handleDelete(w, r)
 	}
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		ctx := r.Context()
+		e := models.ServerError(ctx, err)
+		views.RenderError(ctx, w, e)
 	}
 }
 
 // Retrieve a post
 // GET /post/1
 func (h *PostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err error) {
+	resource, _ := models.ShiftRoute(r)
 	ctx := r.Context()
-	param, _ := ExtractRoute(ctx)
-	id, err := strconv.Atoi(param)
+	id, err := strconv.Atoi(resource)
 	if err != nil {
+		err = models.BadRequestError(ctx)
 		return
 	}
 	post, err := h.Model.Fetch(ctx, id)
 	if err != nil {
+		err = models.TransactionError(ctx, err)
 		return
 	}
-	output, err := json.MarshalIndent(post, "", "\t\t")
-	if err != nil {
-		return
-	}
-	w.Write(output)
+	err = views.RenderPost(ctx, w, post)
 	return
 }
 
 // Create a post
 // POST /post/
 func (h *PostHandler) handlePost(w http.ResponseWriter, r *http.Request) (err error) {
+	ctx := r.Context()
 	len := r.ContentLength
 	body := make([]byte, len)
-	r.Body.Read(body)
-	post := domains.Post{}
-	json.Unmarshal(body, &post)
-	ctx := r.Context()
+	_, err = r.Body.Read(body)
+	if err != io.EOF {
+		err = models.BadRequestError(ctx)
+		return
+	}
+	post := prototypes.Post{}
+	err = json.Unmarshal(body, &post)
+	if err != nil {
+		err = models.BadRequestError(ctx)
+		return
+	}
 	err = h.Model.Create(ctx, &post)
 	if err != nil {
+		err = models.TransactionError(ctx, err)
 		return
 	}
-	output, err := json.MarshalIndent(post, "", "\t\t")
-	if err != nil {
-		return
-	}
-	w.Write(output)
+	err = views.RenderPost(ctx, w, post)
 	return
 }
 
 // Update a post
 // PUT /post/1
 func (h *PostHandler) handlePut(w http.ResponseWriter, r *http.Request) (err error) {
+	resource, _ := models.ShiftRoute(r)
 	ctx := r.Context()
-	param, _ := ExtractRoute(ctx)
-	id, err := strconv.Atoi(param)
+	id, err := strconv.Atoi(resource)
 	if err != nil {
+		err = models.BadRequestError(ctx)
 		return
 	}
 	post, err := h.Model.Fetch(ctx, id)
 	if err != nil {
+		err = models.TransactionError(ctx, err)
 		return
 	}
 	len := r.ContentLength
 	body := make([]byte, len)
-	r.Body.Read(body)
+	_, err = r.Body.Read(body)
+	if err != io.EOF {
+		err = models.BadRequestError(ctx)
+		return
+	}
 	// parse json from request body
-	json.Unmarshal(body, &post)
+	err = json.Unmarshal(body, &post)
+	if err != nil {
+		err = models.BadRequestError(ctx)
+		return
+	}
 	err = h.Model.Update(ctx, &post)
 	if err != nil {
+		err = models.TransactionError(ctx, err)
 		return
 	}
-	output, err := json.MarshalIndent(post, "", "\t\t")
-	if err != nil {
-		return
-	}
-	w.Write(output)
+	err = views.RenderPost(ctx, w, post)
 	return
 }
 
 // Delete a post
 // DELETE /post/1
 func (h *PostHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
+	resource, _ := models.ShiftRoute(r)
 	ctx := r.Context()
-	param, _ := ExtractRoute(ctx)
-	id, err := strconv.Atoi(param)
+	id, err := strconv.Atoi(resource)
 	if err != nil {
+		err = models.BadRequestError(ctx)
 		return
 	}
 	err = h.Model.Delete(ctx, id)
 	if err != nil {
+		err = models.TransactionError(ctx, err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
