@@ -9,7 +9,7 @@ import (
 type User struct {
 	ID        *int      `json:"id"`
 	Email     string    `json:"email"`
-	Password  string    `json:"password,omitempty"`
+	HashedPwd string    `json:"hashed_pwd,omitempty"`
 	CreatedAt time.Time `json:"-"` // reconstruct in UserView
 	UpdatedAt time.Time `json:"-"` // reconstruct in UserView
 }

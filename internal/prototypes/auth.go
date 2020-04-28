@@ -2,12 +2,19 @@ package prototypes
 
 import (
 	"context"
+	"time"
 )
 
 // Auth ...
 type Auth struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+// Token ...
+type Token struct {
+	Token     string    `json:"token"`
+	ExpiredAt time.Time `json:"-"`
 }
 
 // AuthService ...
