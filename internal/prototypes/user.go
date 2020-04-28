@@ -1,17 +1,23 @@
 package prototypes
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 // User ...
 type User struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	ID        *int      `json:"id"`
+	Email     string    `json:"email"`
+	Password  string    `json:"password,omitempty"`
+	CreatedAt time.Time `json:"-"` // reconstruct in UserView
+	UpdatedAt time.Time `json:"-"` // reconstruct in UserView
 }
 
 // UserService ...
 type UserService interface {
-	Login(ctx context.Context, user *User) (string token, err error)
-	Create(ctx context.Context, user *User) (string token, err error)
+	Fetch(ctx context.Context, id int) (user User, err error)
+	Create(ctx context.Context, user *User) (token string, err error)
 	Update(ctx context.Context, user *User) (err error)
-	Delete(ctx context.Context, string token) (err error)
+	Delete(ctx context.Context, token string) (err error)
 }

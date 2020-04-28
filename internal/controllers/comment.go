@@ -20,8 +20,8 @@ func (h *CommentHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
 		err = h.handlePost(w, r)
-	case http.MethodPut:
-		err = h.handlePut(w, r)
+	case http.MethodPatch:
+		err = h.handlePatch(w, r)
 	case http.MethodDelete:
 		err = h.handleDelete(w, r)
 	}
@@ -53,7 +53,7 @@ func (h *CommentHandler) handlePost(w http.ResponseWriter, r *http.Request) (err
 
 // Update a comment
 // PUT /comment/1
-func (h *CommentHandler) handlePut(w http.ResponseWriter, r *http.Request) (err error) {
+func (h *CommentHandler) handlePatch(w http.ResponseWriter, r *http.Request) (err error) {
 	resource, _ := models.ShiftRoute(r)
 	ctx := r.Context()
 	id, err := strconv.Atoi(resource)

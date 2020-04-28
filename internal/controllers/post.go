@@ -22,8 +22,8 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err = h.handleGet(w, r)
 	case http.MethodPost:
 		err = h.handlePost(w, r)
-	case http.MethodPut:
-		err = h.handlePut(w, r)
+	case http.MethodPatch:
+		err = h.handlePatch(w, r)
 	case http.MethodDelete:
 		err = h.handleDelete(w, r)
 	}
@@ -74,7 +74,7 @@ func (h *PostHandler) handlePost(w http.ResponseWriter, r *http.Request) (err er
 
 // Update a post
 // PUT /post/1
-func (h *PostHandler) handlePut(w http.ResponseWriter, r *http.Request) (err error) {
+func (h *PostHandler) handlePatch(w http.ResponseWriter, r *http.Request) (err error) {
 	resource, _ := models.ShiftRoute(r)
 	ctx := r.Context()
 	id, err := strconv.Atoi(resource)
