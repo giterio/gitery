@@ -9,6 +9,7 @@ import (
 
 // Root is the root handler of comming request
 type Root struct {
+	UserHandler    *UserHandler
 	PostHandler    *PostHandler
 	CommentHandler *CommentHandler
 }
@@ -16,6 +17,9 @@ type Root struct {
 func (h *Root) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	resource, r := models.ShiftRoute(r)
 	switch resource {
+	case "user":
+		h.UserHandler.ServeHTTP(w, r)
+		return
 	case "post":
 		h.PostHandler.ServeHTTP(w, r)
 		return

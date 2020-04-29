@@ -36,6 +36,7 @@ func main() {
 	}
 
 	router := &controllers.Root{
+		UserHandler:    &controllers.UserHandler{Model: &models.UserService{DB: db}},
 		PostHandler:    &controllers.PostHandler{Model: &models.PostService{DB: db}},
 		CommentHandler: &controllers.CommentHandler{Model: &models.CommentService{DB: db}},
 	}

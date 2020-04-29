@@ -11,7 +11,7 @@ create table users (
 
 create table auth (
 	id SERIAL PRIMARY KEY,
-	token VARCHAR(255) NOT NULL,
+	token VARCHAR(255) UNIQUE NOT NULL,
 	user_id INTEGER REFERENCES users(id),
 	created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 )
