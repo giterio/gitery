@@ -20,5 +20,6 @@ type Token struct {
 // AuthService ...
 type AuthService interface {
 	Login(ctx context.Context, auth *Auth) (token string, err error)
+	Verify(ctx context.Context, token string) (err error)
 	Logout(ctx context.Context, token string) (err error)
 }
