@@ -9,8 +9,8 @@ import (
 type Comment struct {
 	ID        *int      `json:"id"`
 	Content   string    `json:"content"`
-	Author    string    `json:"author"`
 	PostID    *int      `json:"post_id"`
+	UserID    *int      `json:"user_id"`
 	CreatedAt time.Time `json:"-"` // reconstruct in CommentView
 	UpdatedAt time.Time `json:"-"` // reconstruct in CommentView
 }

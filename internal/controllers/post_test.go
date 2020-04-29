@@ -38,7 +38,7 @@ func TestHandlePost(t *testing.T) {
 	})
 
 	writer := httptest.NewRecorder()
-	jsonStr := strings.NewReader(`{"content":"Updated post","author":"Sau Sheong"}`)
+	jsonStr := strings.NewReader(`{"content":"Updated post","user_id": 1}`)
 	request, _ := http.NewRequest("POST", "/post/1", jsonStr)
 	mux.ServeHTTP(writer, request)
 
@@ -47,7 +47,7 @@ func TestHandlePost(t *testing.T) {
 	}
 	var post prototypes.Post
 	json.Unmarshal(writer.Body.Bytes(), &post)
-	if post.Content != "Updated post" || post.Author != "Sau Sheong" {
-		t.Errorf("Post not match, Content: %s, Author: %s", post.Content, post.Author)
+	if post.Content != "Updated post" || *post.UserID != 1 {
+		t.Errorf("Post not match, Content: %s, Author: %d", post.Content, *post.UserID)
 	}
 }

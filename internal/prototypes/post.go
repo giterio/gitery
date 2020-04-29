@@ -9,8 +9,8 @@ import (
 type Post struct {
 	ID        *int      `json:"id"`
 	Content   string    `json:"content"`
-	Author    string    `json:"author"`
 	Comments  []Comment `json:"-"` // reconstruct in PostView
+	UserID    *int      `json:"user_id"`
 	CreatedAt time.Time `json:"-"` // reconstruct in PostView
 	UpdatedAt time.Time `json:"-"` // reconstruct in PostView
 }

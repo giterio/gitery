@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"golang.org/x/crypto/bcrypt"
+
 	"gitery/internal/models"
 	"gitery/internal/prototypes"
 	"gitery/internal/views"
@@ -54,11 +56,20 @@ func (h *UserHandler) handleGet(w http.ResponseWriter, r *http.Request) (err err
 // create a user
 func (h *UserHandler) handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
-	user := prototypes.User{}
-	err = json.NewDecoder(r.Body).Decode(&user)
+	register := prototypes.Register{}
+	err = json.NewDecoder(r.Body).Decode(&register)
 	if err != nil {
 		err = models.BadRequestError(ctx)
 		return
+	}
+	hash, err := bcrypt.GenerateFromPassword([]byte(register.Password), bcrypt.DefaultCost)
+	if err != nil {
+		err = models.ServerError(ctx, err)
+		return
+	}
+	user := prototypes.User{
+		Email:     register.Email,
+		HashedPwd: string(hash),
 	}
 	err = h.Model.Create(ctx, &user)
 	if err != nil {

@@ -16,18 +16,18 @@ type PostService struct {
 func (ps *PostService) Fetch(ctx context.Context, id int) (post prototypes.Post, err error) {
 	post = prototypes.Post{}
 	post.Comments = []prototypes.Comment{}
-	err = ps.DB.QueryRowContext(ctx, "select id, content, author, created_at, updated_at from posts where id = $1", id).Scan(
-		&post.ID, &post.Content, &post.Author, &post.CreatedAt, &post.UpdatedAt)
+	err = ps.DB.QueryRowContext(ctx, "select id, content, user_id, created_at, updated_at from posts where id = $1", id).Scan(
+		&post.ID, &post.Content, &post.UserID, &post.CreatedAt, &post.UpdatedAt)
 	if err != nil {
 		return
 	}
-	rows, err := ps.DB.QueryContext(ctx, "select id, content, author, created_at, updated_at from comments where post_id =$1", id)
+	rows, err := ps.DB.QueryContext(ctx, "select id, content, user_id, created_at, updated_at from comments where post_id =$1", id)
 	if err != nil {
 		return
 	}
 	for rows.Next() {
 		comment := prototypes.Comment{PostID: &id}
-		err = rows.Scan(&comment.ID, &comment.Content, &comment.Author, &comment.CreatedAt, &comment.UpdatedAt)
+		err = rows.Scan(&comment.ID, &comment.Content, &comment.UserID, &comment.CreatedAt, &comment.UpdatedAt)
 		if err != nil {
 			return
 		}
@@ -38,21 +38,21 @@ func (ps *PostService) Fetch(ctx context.Context, id int) (post prototypes.Post,
 
 // Create a new post
 func (ps *PostService) Create(ctx context.Context, post *prototypes.Post) (err error) {
-	statement := "insert into posts (content, author) values ($1, $2) returning id, created_at, updated_at"
+	statement := "insert into posts (content, user_id) values ($1, $2) returning id, created_at, updated_at"
 	stmt, err := ps.DB.PrepareContext(ctx, statement)
 	if err != nil {
 		return
 	}
 	defer stmt.Close()
-	err = stmt.QueryRowContext(ctx, post.Content, post.Author).Scan(&post.ID, &post.CreatedAt, &post.UpdatedAt)
+	err = stmt.QueryRowContext(ctx, post.Content, post.UserID).Scan(&post.ID, &post.CreatedAt, &post.UpdatedAt)
 	post.Comments = []prototypes.Comment{}
 	return
 }
 
 // Update a post
 func (ps *PostService) Update(ctx context.Context, post *prototypes.Post) (err error) {
-	err = ps.DB.QueryRowContext(ctx, "update posts set content = $2, author = $3 where id = $1 returning updated_at",
-		post.ID, post.Content, post.Author).Scan(&post.UpdatedAt)
+	err = ps.DB.QueryRowContext(ctx, "update posts set content = $2, user_id = $3 where id = $1 returning updated_at",
+		post.ID, post.Content, post.UserID).Scan(&post.UpdatedAt)
 	return
 }
 
