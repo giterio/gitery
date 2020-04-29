@@ -116,6 +116,6 @@ func (h *PostHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err 
 		err = models.TransactionError(ctx, err)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
+	views.RenderEmpty(ctx, w)
 	return
 }

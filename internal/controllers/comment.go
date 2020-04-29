@@ -95,6 +95,6 @@ func (h *CommentHandler) handleDelete(w http.ResponseWriter, r *http.Request) (e
 		err = models.TransactionError(ctx, err)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
+	views.RenderEmpty(ctx, w)
 	return
 }

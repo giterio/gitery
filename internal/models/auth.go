@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"database/sql"
+
 	"gitery/internal/prototypes"
 )
 
@@ -14,6 +15,10 @@ type AuthService struct {
 // Login ...
 func (us *AuthService) Login(ctx context.Context, auth *prototypes.Auth) (err error) {
 	// TODO implement login function
+	// token has been expired
+	// if time.Now().After(tokenCreateAt.Add(time.Hour * 24 * 30)) {
+	// 	err = AuthorizationError(ctx)
+	// }
 	return
 }
 
