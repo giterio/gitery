@@ -22,7 +22,8 @@ func (us *AuthService) Login(ctx context.Context, auth *prototypes.Auth) (err er
 	return
 }
 
-func (us *AuthService) Verify(ctx context.Context token string) (err error) {
+// Verify ...
+func (us *AuthService) Verify(ctx context.Context, token string) (err error) {
 	// TODO implement verify function
 	return
 }
