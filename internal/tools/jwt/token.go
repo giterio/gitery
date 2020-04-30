@@ -49,21 +49,22 @@ func Encode(payload Payload, secret string) (token string, err error) {
 func Decode(token string, secret string) (payload Payload, err error) {
 	parts := strings.Split(token, ".")
 	if len(parts) != 3 {
-		err = errors.New("Invalid token: token should contain header, payload and secret")
+		err = errors.New("Invalid token: wrong format")
 		return
 	}
 	payload = Payload{}
 	err = base64URLUnmarshal(parts[1], payload)
 	if err != nil {
+		err = errors.New("Invalid token: payload not parsable")
 		return
 	}
 	if payload.Exp != 0 && time.Now().Unix() > payload.Exp {
-		err = errors.New("Expired token: token has expired")
+		err = errors.New("Invalid token: token expired")
 		return
 	}
 	msg := parts[0] + "." + parts[1]
 	if ok := verify(msg, parts[2], secret); !ok {
-		err = errors.New("Invalid token")
+		err = errors.New("Invalid token: verification failed")
 		return
 	}
 	return
