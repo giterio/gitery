@@ -33,6 +33,6 @@ func sign(src string, secret string) (sig string) {
 	return
 }
 
-func verify(value string, sig string, secret string) bool {
-	return sig == sign(value, secret)
+func verify(msg string, sig string, secret string) bool {
+	return sig == sign(msg, secret)
 }
