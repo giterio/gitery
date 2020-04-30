@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"gitery/internal/prototypes"
+	"gitery/internal/views"
 	"gitery/test/testdata"
 )
 
@@ -24,9 +24,13 @@ func TestHandleGet(t *testing.T) {
 	if writer.Code != 200 {
 		t.Errorf("Response code is %v", writer.Code)
 	}
-	var post prototypes.Post
-	json.Unmarshal(writer.Body.Bytes(), &post)
-	if *post.ID != 1 {
+	var dataView views.DataView
+	err := json.Unmarshal(writer.Body.Bytes(), &dataView)
+	if err != nil {
+		t.Errorf("response body not parsable %s", err.Error())
+	}
+	postData, ok := dataView.Data.(map[string]interface{})
+	if ok && postData["id"] == 1 {
 		t.Errorf("Cannot retrieve JSON post")
 	}
 }
@@ -45,9 +49,13 @@ func TestHandlePost(t *testing.T) {
 	if writer.Code != 200 {
 		t.Errorf("Response code is %v", writer.Code)
 	}
-	var post prototypes.Post
-	json.Unmarshal(writer.Body.Bytes(), &post)
-	if post.Content != "Updated post" || *post.UserID != 1 {
-		t.Errorf("Post not match, Content: %s, Author: %d", post.Content, *post.UserID)
+	var dataView views.DataView
+	err := json.Unmarshal(writer.Body.Bytes(), &dataView)
+	if err != nil {
+		t.Errorf("response body not parsable %s", err.Error())
+	}
+	postData, ok := dataView.Data.(map[string]interface{})
+	if ok && postData["content"] == "Updated post" && postData["user_id"] == 1 {
+		t.Errorf("Cannot retrieve JSON post")
 	}
 }

@@ -53,7 +53,7 @@ func Decode(token string, secret string) (payload Payload, err error) {
 		return
 	}
 	payload = Payload{}
-	err = base64URLUnmarshal(parts[1], payload)
+	err = base64URLUnmarshal(parts[1], &payload)
 	if err != nil {
 		err = errors.New("Invalid token: payload not parsable")
 		return

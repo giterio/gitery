@@ -25,10 +25,10 @@ func base64URLUnmarshal(base64Str string, v interface{}) (err error) {
 	return
 }
 
-func sign(src string, secret string) (sig string) {
+func sign(msg string, secret string) (sig string) {
 	key := []byte(secret)
 	h := hmac.New(sha256.New, key)
-	h.Write([]byte(src))
+	h.Write([]byte(msg))
 	sig = base64.StdEncoding.EncodeToString(h.Sum(nil))
 	return
 }
