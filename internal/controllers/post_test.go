@@ -13,7 +13,7 @@ import (
 
 func TestHandleGet(t *testing.T) {
 	mux := http.NewServeMux()
-	mux.Handle("/", &Root{
+	mux.Handle("/", &RootHandler{
 		PostHandler: &PostHandler{Model: &testdata.FakePostService{}},
 	})
 
@@ -37,7 +37,7 @@ func TestHandleGet(t *testing.T) {
 
 func TestHandlePost(t *testing.T) {
 	mux := http.NewServeMux()
-	mux.Handle("/", &Root{
+	mux.Handle("/", &RootHandler{
 		PostHandler: &PostHandler{Model: &testdata.FakePostService{}},
 	})
 

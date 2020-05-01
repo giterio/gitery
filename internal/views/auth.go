@@ -3,26 +3,22 @@ package views
 import (
 	"context"
 	"net/http"
-
-	"gitery/internal/prototypes"
 )
 
-// TokenView ...
-type TokenView struct {
-	prototypes.Token
-	ExpiredAt int64 `json:"expired_at"`
+// AuthView ...
+type AuthView struct {
+	Token string `json:"token"`
 }
 
 // BuildTokenView ...
-func BuildTokenView(token prototypes.Token) TokenView {
-	return TokenView{
-		Token:     token,
-		ExpiredAt: token.ExpiredAt.Unix(),
+func BuildTokenView(token string) AuthView {
+	return AuthView{
+		Token: token,
 	}
 }
 
-// RenderToken ...
-func RenderToken(ctx context.Context, w http.ResponseWriter, token prototypes.Token) (err error) {
+// RenderAuth ...
+func RenderAuth(ctx context.Context, w http.ResponseWriter, token string) (err error) {
 	tokenView := BuildTokenView(token)
 	err = Render(ctx, w, tokenView)
 	return

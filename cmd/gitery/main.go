@@ -7,35 +7,36 @@ import (
 
 	_ "github.com/lib/pq"
 
+	"gitery/config"
 	"gitery/internal/controllers"
 	"gitery/internal/middlewares"
 	"gitery/internal/models"
 )
 
-const (
-	host     = "157.245.188.163"
-	port     = 5432
-	user     = "gitery"
-	password = "5S8bjCl@30Nq"
-	dbname   = "gitery"
-)
-
-func wrapMiddlewares(h http.Handler) http.Handler {
-	h = middlewares.Constraint(h)
-	return middlewares.WrapContext(h)
+func wrapMiddlewares(h *controllers.RootHandler) (handler http.Handler) {
+	handler = middlewares.Authentication(h)
+	handler = middlewares.Constraint(handler)
+	return middlewares.LoadContext(handler)
 }
 
 func main() {
+	appConfig, err := config.Init(config.Development)
+	if err != nil {
+		panic(err)
+	}
+
+	dbConfig := appConfig.Database
 	// connect to the Db
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		dbConfig.Host, dbConfig.Port, dbConfig.User, dbConfig.Password, dbConfig.Name)
 
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
 		panic(err)
 	}
 
-	router := &controllers.Root{
+	router := &controllers.RootHandler{
+		AuthHandler:    &controllers.AuthHandler{Model: &models.AuthService{DB: db, JwtSecret: appConfig.JwtSecret}},
 		UserHandler:    &controllers.UserHandler{Model: &models.UserService{DB: db}},
 		PostHandler:    &controllers.PostHandler{Model: &models.PostService{DB: db}},
 		CommentHandler: &controllers.CommentHandler{Model: &models.CommentService{DB: db}},

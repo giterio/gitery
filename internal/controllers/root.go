@@ -7,16 +7,20 @@ import (
 	"gitery/internal/views"
 )
 
-// Root is the root handler of comming request
-type Root struct {
+// RootHandler is the root handler of comming request
+type RootHandler struct {
+	AuthHandler    *AuthHandler
 	UserHandler    *UserHandler
 	PostHandler    *PostHandler
 	CommentHandler *CommentHandler
 }
 
-func (h *Root) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	resource, r := models.ShiftRoute(r)
 	switch resource {
+	case "auth":
+		h.AuthHandler.ServeHTTP(w, r)
+		return
 	case "user":
 		h.UserHandler.ServeHTTP(w, r)
 		return

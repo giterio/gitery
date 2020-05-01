@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
@@ -38,13 +39,12 @@ func (h *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // Retrieve a user
 // GET /user/1
 func (h *UserHandler) handleGet(w http.ResponseWriter, r *http.Request) (err error) {
-	token := r.Header.Get("Authorization")
 	ctx := r.Context()
-	if err != nil {
-		err = models.BadRequestError(ctx)
-		return
+	userPub, ok := ctx.Value(prototypes.UserKey).(prototypes.UserPub)
+	if !ok {
+		return errors.New("No user info in request context")
 	}
-	user, err := h.Model.Fetch(ctx, token)
+	user, err := h.Model.Fetch(ctx, *userPub.ID)
 	if err != nil {
 		err = models.TransactionError(ctx, err)
 		return
@@ -82,9 +82,12 @@ func (h *UserHandler) handlePost(w http.ResponseWriter, r *http.Request) (err er
 
 // update user information
 func (h *UserHandler) handlePatch(w http.ResponseWriter, r *http.Request) (err error) {
-	token := r.Header.Get("Authorization")
 	ctx := r.Context()
-	user, err := h.Model.Fetch(ctx, token)
+	userPub, ok := ctx.Value(prototypes.UserKey).(prototypes.UserPub)
+	if !ok {
+		return errors.New("No user info in request context")
+	}
+	user, err := h.Model.Fetch(ctx, *userPub.ID)
 	if err != nil {
 		err = models.TransactionError(ctx, err)
 		return

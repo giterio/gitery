@@ -2,7 +2,6 @@ package prototypes
 
 import (
 	"context"
-	"time"
 )
 
 // Auth ...
@@ -11,15 +10,15 @@ type Auth struct {
 	Password string `json:"password"`
 }
 
-// Token ...
-type Token struct {
-	Token     string    `json:"token"`
-	ExpiredAt time.Time `json:"-"`
+// UserPub ...
+type UserPub struct {
+	ID    *int   `json:"user_id"`
+	Email string `json:"email"`
 }
 
 // AuthService ...
 type AuthService interface {
-	Login(ctx context.Context, auth *Auth) (token string, err error)
-	Verify(ctx context.Context, token string) (err error)
-	Logout(ctx context.Context, token string) (err error)
+	Login(ctx context.Context, auth Auth) (token string, err error)
+	Verify(ctx context.Context, token string) (userPub UserPub, err error)
+	// getUserPub(ctx context.Context, r http.Request) (userPub UserPub, err error)
 }

@@ -5,13 +5,8 @@ import (
 	"net/http"
 	"path"
 	"strings"
-)
 
-type contextKey int
-
-const (
-	routeKey contextKey = iota
-	paramKey
+	"gitery/internal/prototypes"
 )
 
 // shiftPath is to get the first parameter from path and generate next sub-path
@@ -31,7 +26,7 @@ type Route struct {
 
 // infestContext is to bind request's context with the route
 func (route *Route) infestContext(r *http.Request) *http.Request {
-	ctx := context.WithValue(r.Context(), routeKey, route)
+	ctx := context.WithValue(r.Context(), prototypes.RouteKey, route)
 	return r.WithContext(ctx)
 }
 
@@ -48,7 +43,7 @@ func (route *Route) shift() (resource string, subRoute *Route) {
 // ShiftRoute is to shift resource name from request and generate next sub-route
 func ShiftRoute(r *http.Request) (resource string, rn *http.Request) {
 	ctx := r.Context()
-	rv := ctx.Value(routeKey)
+	rv := ctx.Value(prototypes.RouteKey)
 	route, ok := rv.(*Route)
 	if !ok {
 		// create a Route with full path

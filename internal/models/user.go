@@ -13,11 +13,10 @@ type UserService struct {
 }
 
 // Fetch user information
-func (us *UserService) Fetch(ctx context.Context, token string) (user prototypes.User, err error) {
+func (us *UserService) Fetch(ctx context.Context, id int) (user prototypes.User, err error) {
 	user = prototypes.User{}
-	err = us.DB.QueryRowContext(ctx, "select user_id, created_at from auth where token = $1", token).Scan(&user.ID)
-	err = us.DB.QueryRowContext(ctx, "select email, hashed_pwd, created_at, updated_at from users where id = $1", user.ID).Scan(
-		&user.Email, &user.HashedPwd, &user.CreatedAt, &user.UpdatedAt)
+	err = us.DB.QueryRowContext(ctx, "select id, email, hashed_pwd, created_at, updated_at from users where id = $1", id).Scan(
+		&user.ID, &user.Email, &user.HashedPwd, &user.CreatedAt, &user.UpdatedAt)
 	return
 }
 
@@ -42,7 +41,6 @@ func (us *UserService) Update(ctx context.Context, user *prototypes.User) (err e
 
 // Delete a post
 func (us *UserService) Delete(ctx context.Context, user *prototypes.User) (err error) {
-	err = us.DB.QueryRowContext(ctx, "delete from auth where email = $1 and hashed_pwd returning id", user.Email, user.HashedPwd).Scan(&user.ID)
-	_, err = us.DB.ExecContext(ctx, "delete from auth where user_id = $1", user.ID)
+	_, err = us.DB.ExecContext(ctx, "delete from users where email = $1 and hashed_pwd returning id", user.Email, user.HashedPwd)
 	return
 }

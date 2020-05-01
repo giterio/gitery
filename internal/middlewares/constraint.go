@@ -1,6 +1,8 @@
 package middlewares
 
-import "net/http"
+import (
+	"net/http"
+)
 
 // Constraint process OPTIONS request.
 func Constraint(handler http.Handler) http.Handler {
