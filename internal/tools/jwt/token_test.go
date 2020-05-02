@@ -1,19 +1,27 @@
 package jwt
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 )
 
+type UserPub struct {
+	ID    *int   `json:"user_id"`
+	Email string `json:"email"`
+}
+
 func TestEncode(t *testing.T) {
 	secret := "this is screct"
+	id := 1
+	userPub := UserPub{
+		ID:    &id,
+		Email: "Murphy@jwt.com",
+	}
 	payload := Payload{
 		Sub: "123",
 		Exp: time.Now().Unix() + 100000,
-		Pub: map[string]interface{}{
-			"Name":  "Murphy",
-			"Email": "Murphy@jwt.com",
-		},
+		Pub: userPub,
 	}
 	token, err := Encode(payload, secret)
 	if err != nil {
@@ -26,9 +34,10 @@ func TestEncode(t *testing.T) {
 	if payload.Exp != payloadDecoded.Exp {
 		t.Errorf("Error: payload data not matched")
 	}
-	pub1, ok1 := payload.Pub.(map[string]interface{})
-	pub2, ok2 := payloadDecoded.Pub.(map[string]interface{})
-	if !ok1 || !ok2 || pub1["Name"] != pub2["Name"] {
+	userPubRes := UserPub{}
+	userPubBytes, _ := json.Marshal(payloadDecoded.Pub)
+	json.Unmarshal(userPubBytes, &userPubRes)
+	if userPub.Email != userPubRes.Email || *userPub.ID != *userPubRes.ID {
 		t.Errorf("Error: payload pub not matched")
 	}
 }

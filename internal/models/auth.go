@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -45,9 +46,10 @@ func (us *AuthService) Login(ctx context.Context, auth prototypes.Auth) (token s
 // Verify ...
 func (us *AuthService) Verify(ctx context.Context, token string) (userPub prototypes.UserPub, err error) {
 	payload, err := jwt.Decode(token, us.JwtSecret)
-	userPub = payload.Pub.(prototypes.UserPub)
+	userPubBytes, err := json.Marshal(payload.Pub)
 	if err != nil {
 		return
 	}
+	err = json.Unmarshal(userPubBytes, &userPub)
 	return
 }

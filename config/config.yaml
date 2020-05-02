@@ -7,7 +7,7 @@ default: &default
   database:
     user: gitery
     password: "5S8bjCl@30Nq"
-    host: http://157.245.188.163
+    host: 157.245.188.163
     port: 5432
   jwt_secret: "WaKcpaVrjPA4Mn8xED2p7zv224G6GC2w8_CWoNRBu2M"
 
