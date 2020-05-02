@@ -19,6 +19,7 @@ func (ps *PostService) Fetch(ctx context.Context, id int) (post prototypes.Post,
 	err = ps.DB.QueryRowContext(ctx, "select id, content, user_id, created_at, updated_at from posts where id = $1", id).Scan(
 		&post.ID, &post.Content, &post.UserID, &post.CreatedAt, &post.UpdatedAt)
 	if err != nil {
+		err = NotFoundError(ctx, err)
 		return
 	}
 	rows, err := ps.DB.QueryContext(ctx, "select id, content, user_id, created_at, updated_at from comments where post_id =$1", id)

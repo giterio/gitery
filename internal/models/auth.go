@@ -3,7 +3,6 @@ package models
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -19,37 +18,44 @@ type AuthService struct {
 }
 
 // Login ...
-func (us *AuthService) Login(ctx context.Context, auth prototypes.Auth) (token string, err error) {
+func (as *AuthService) Login(ctx context.Context, auth prototypes.Auth) (token string, err error) {
 	user := prototypes.User{}
-	err = us.DB.QueryRowContext(ctx, "select id, email, hashed_pwd, created_at, updated_at from users where email = $1", auth.Email).Scan(
+	err = as.DB.QueryRowContext(ctx, "select id, email, hashed_pwd, created_at, updated_at from users where email = $1", auth.Email).Scan(
 		&user.ID, &user.Email, &user.HashedPwd, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
+		err = IdentityNonExistError(ctx, err)
 		return
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(user.HashedPwd), []byte(auth.Password))
 	if err != nil {
+		err = InvalidPasswordError(ctx, err)
 		return
 	}
-	userPub := prototypes.UserPub{
-		ID:    user.ID,
-		Email: user.Email,
-	}
-	payload := jwt.Payload{
+	payload := prototypes.JwtPayload{
 		Iat: time.Now().Unix(),
 		Exp: time.Now().Add(time.Hour * 24 * 7).Unix(),
-		Pub: userPub,
+		Pub: struct {
+			ID    *int   `json:"user_id"`
+			Email string `json:"email"`
+		}{
+			ID:    user.ID,
+			Email: user.Email,
+		},
 	}
-	token, err = jwt.Encode(payload, us.JwtSecret)
+	token, err = jwt.Encode(payload, as.JwtSecret)
 	return
 }
 
 // Verify ...
-func (us *AuthService) Verify(ctx context.Context, token string) (userPub prototypes.UserPub, err error) {
-	payload, err := jwt.Decode(token, us.JwtSecret)
-	userPubBytes, err := json.Marshal(payload.Pub)
+func (as *AuthService) Verify(ctx context.Context, token string) (payload prototypes.JwtPayload, err error) {
+	payload = prototypes.JwtPayload{}
+	err = jwt.Decode(token, as.JwtSecret, &payload)
 	if err != nil {
 		return
 	}
-	err = json.Unmarshal(userPubBytes, &userPub)
+	if payload.Exp != 0 && time.Now().Unix() > payload.Exp {
+		err = AuthorizationError(ctx, err)
+		return
+	}
 	return
 }

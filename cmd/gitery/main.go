@@ -13,10 +13,10 @@ import (
 	"gitery/internal/models"
 )
 
-func wrapMiddlewares(h *controllers.RootHandler) (handler http.Handler) {
-	handler = middlewares.Authentication(h)
-	handler = middlewares.Constraint(handler)
-	return middlewares.LoadContext(handler)
+func wrapMiddlewares(h http.Handler) http.Handler {
+	h = middlewares.Authentication(h)
+	h = middlewares.Constraint(h)
+	return middlewares.LoadContext(h)
 }
 
 func main() {

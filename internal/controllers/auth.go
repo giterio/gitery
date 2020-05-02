@@ -9,6 +9,7 @@ import (
 	"gitery/internal/views"
 )
 
+// AuthHandler ...
 type AuthHandler struct {
 	Model prototypes.AuthService
 }
@@ -26,12 +27,13 @@ func (h *AuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// handle login event
 func (h *AuthHandler) handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
 	auth := prototypes.Auth{}
 	err = json.NewDecoder(r.Body).Decode(&auth)
 	if err != nil {
-		err = models.BadRequestError(ctx)
+		err = models.BadRequestError(ctx, err)
 		return
 	}
 	token, err := h.Model.Login(ctx, auth)

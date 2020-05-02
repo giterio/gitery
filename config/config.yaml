@@ -9,19 +9,17 @@ default: &default
     password: "5S8bjCl@30Nq"
     host: 157.245.188.163
     port: 5432
+    name: gitery
   jwt_secret: "WaKcpaVrjPA4Mn8xED2p7zv224G6GC2w8_CWoNRBu2M"
 
 development:
   <<: *default
+  name: development configuration
   database:
-    name: gitery_dev
-
-test:
-  <<: *default
-  database:
-    name: gitery_test
+    name: gitery
 
 production:
   <<: *default
+  name: production configuration
   database:
     name: gitery_prod

@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
@@ -40,11 +39,12 @@ func (h *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // GET /user/1
 func (h *UserHandler) handleGet(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
-	userPub, ok := ctx.Value(prototypes.UserKey).(prototypes.UserPub)
+	payload, ok := ctx.Value(prototypes.UserKey).(prototypes.JwtPayload)
 	if !ok {
-		return errors.New("No user info in request context")
+		err = models.AuthorizationError(ctx, err)
+		return
 	}
-	user, err := h.Model.Fetch(ctx, *userPub.ID)
+	user, err := h.Model.Fetch(ctx, *payload.Pub.ID)
 	if err != nil {
 		err = models.TransactionError(ctx, err)
 		return
@@ -59,7 +59,7 @@ func (h *UserHandler) handlePost(w http.ResponseWriter, r *http.Request) (err er
 	register := prototypes.Register{}
 	err = json.NewDecoder(r.Body).Decode(&register)
 	if err != nil {
-		err = models.BadRequestError(ctx)
+		err = models.BadRequestError(ctx, err)
 		return
 	}
 	hash, err := bcrypt.GenerateFromPassword([]byte(register.Password), bcrypt.DefaultCost)
@@ -83,18 +83,19 @@ func (h *UserHandler) handlePost(w http.ResponseWriter, r *http.Request) (err er
 // update user information
 func (h *UserHandler) handlePatch(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
-	userPub, ok := ctx.Value(prototypes.UserKey).(prototypes.UserPub)
+	payload, ok := ctx.Value(prototypes.UserKey).(prototypes.JwtPayload)
 	if !ok {
-		return errors.New("No user info in request context")
+		err = models.AuthorizationError(ctx, err)
+		return
 	}
-	user, err := h.Model.Fetch(ctx, *userPub.ID)
+	user, err := h.Model.Fetch(ctx, *payload.Pub.ID)
 	if err != nil {
 		err = models.TransactionError(ctx, err)
 		return
 	}
 	err = json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		err = models.BadRequestError(ctx)
+		err = models.BadRequestError(ctx, err)
 		return
 	}
 	err = h.Model.Update(ctx, &user)
@@ -111,7 +112,7 @@ func (h *UserHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err 
 	user := prototypes.User{}
 	err = json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		err = models.BadRequestError(ctx)
+		err = models.BadRequestError(ctx, err)
 		return
 	}
 	err = h.Model.Delete(ctx, &user)

@@ -12,12 +12,12 @@ func base64URLMarshal(raw interface{}) (base64Str string, err error) {
 	if err != nil {
 		return
 	}
-	base64Str = base64.URLEncoding.EncodeToString(bytes)
+	base64Str = base64.RawURLEncoding.EncodeToString(bytes)
 	return
 }
 
 func base64URLUnmarshal(base64Str string, v interface{}) (err error) {
-	bytes, err := base64.URLEncoding.DecodeString(base64Str)
+	bytes, err := base64.RawURLEncoding.DecodeString(base64Str)
 	if err != nil {
 		return
 	}
@@ -29,7 +29,7 @@ func sign(msg string, secret string) (sig string) {
 	key := []byte(secret)
 	h := hmac.New(sha256.New, key)
 	h.Write([]byte(msg))
-	sig = base64.StdEncoding.EncodeToString(h.Sum(nil))
+	sig = base64.RawURLEncoding.EncodeToString(h.Sum(nil))
 	return
 }
 

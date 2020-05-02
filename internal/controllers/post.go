@@ -41,7 +41,7 @@ func (h *PostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err err
 	ctx := r.Context()
 	id, err := strconv.Atoi(resource)
 	if err != nil {
-		err = models.BadRequestError(ctx)
+		err = models.BadRequestError(ctx, err)
 		return
 	}
 	post, err := h.Model.Fetch(ctx, id)
@@ -60,7 +60,7 @@ func (h *PostHandler) handlePost(w http.ResponseWriter, r *http.Request) (err er
 	post := prototypes.Post{}
 	err = json.NewDecoder(r.Body).Decode(&post)
 	if err != nil {
-		err = models.BadRequestError(ctx)
+		err = models.BadRequestError(ctx, err)
 		return
 	}
 	err = h.Model.Create(ctx, &post)
@@ -79,7 +79,7 @@ func (h *PostHandler) handlePatch(w http.ResponseWriter, r *http.Request) (err e
 	ctx := r.Context()
 	id, err := strconv.Atoi(resource)
 	if err != nil {
-		err = models.BadRequestError(ctx)
+		err = models.BadRequestError(ctx, err)
 		return
 	}
 	post, err := h.Model.Fetch(ctx, id)
@@ -89,7 +89,7 @@ func (h *PostHandler) handlePatch(w http.ResponseWriter, r *http.Request) (err e
 	}
 	err = json.NewDecoder(r.Body).Decode(&post)
 	if err != nil {
-		err = models.BadRequestError(ctx)
+		err = models.BadRequestError(ctx, err)
 		return
 	}
 	err = h.Model.Update(ctx, &post)
@@ -108,7 +108,7 @@ func (h *PostHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err 
 	ctx := r.Context()
 	id, err := strconv.Atoi(resource)
 	if err != nil {
-		err = models.BadRequestError(ctx)
+		err = models.BadRequestError(ctx, err)
 		return
 	}
 	err = h.Model.Delete(ctx, id)

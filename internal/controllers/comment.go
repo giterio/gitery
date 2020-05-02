@@ -39,7 +39,7 @@ func (h *CommentHandler) handlePost(w http.ResponseWriter, r *http.Request) (err
 	comment := prototypes.Comment{}
 	err = json.NewDecoder(r.Body).Decode(&comment)
 	if err != nil {
-		err = models.BadRequestError(ctx)
+		err = models.BadRequestError(ctx, err)
 		return
 	}
 	err = h.Model.Create(ctx, &comment)
@@ -58,7 +58,7 @@ func (h *CommentHandler) handlePatch(w http.ResponseWriter, r *http.Request) (er
 	ctx := r.Context()
 	id, err := strconv.Atoi(resource)
 	if err != nil {
-		err = models.BadRequestError(ctx)
+		err = models.BadRequestError(ctx, err)
 		return
 	}
 	comment, err := h.Model.Fetch(ctx, id)
@@ -68,7 +68,7 @@ func (h *CommentHandler) handlePatch(w http.ResponseWriter, r *http.Request) (er
 	}
 	err = json.NewDecoder(r.Body).Decode(&comment)
 	if err != nil {
-		err = models.BadRequestError(ctx)
+		err = models.BadRequestError(ctx, err)
 		return
 	}
 	err = h.Model.Update(ctx, &comment)
@@ -87,7 +87,7 @@ func (h *CommentHandler) handleDelete(w http.ResponseWriter, r *http.Request) (e
 	ctx := r.Context()
 	id, err := strconv.Atoi(resource)
 	if err != nil {
-		err = models.BadRequestError(ctx)
+		err = models.BadRequestError(ctx, err)
 		return
 	}
 	err = h.Model.Delete(ctx, id)

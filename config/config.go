@@ -15,8 +15,6 @@ type EnvType string
 const (
 	// Development environment
 	Development EnvType = "development"
-	// Test environment
-	Test EnvType = "test"
 	// Production environment
 	Production EnvType = "production"
 )
@@ -43,6 +41,7 @@ type Option struct {
 
 // Init is using to initialize the configs
 func Init(env EnvType) (appConfig *Option, err error) {
+	// current directory of runtime: /cmd/gitery
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Panicln(err)

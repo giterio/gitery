@@ -1,43 +1,51 @@
 package jwt
 
 import (
-	"encoding/json"
 	"testing"
 	"time"
 )
 
-type UserPub struct {
-	ID    *int   `json:"user_id"`
-	Email string `json:"email"`
+type JwtPayload struct {
+	Iss string `json:"iss,omitempty"` // issuer
+	Exp int64  `json:"exp,omitempty"` // expiration time
+	Sub string `json:"sub,omitempty"` // subject
+	Aud string `json:"aud,omitempty"` // audience
+	Nbf int64  `json:"nbf,omitempty"` // Not Before
+	Iat int64  `json:"iat"`           // Issued At
+	Jti int64  `json:"jti,omitempty"` // JWT ID
+	Pub struct {
+		ID    *int   `json:"user_id"`
+		Email string `json:"email"`
+	} `json:"pub"`
 }
 
 func TestEncode(t *testing.T) {
 	secret := "this is screct"
 	id := 1
-	userPub := UserPub{
-		ID:    &id,
-		Email: "Murphy@jwt.com",
-	}
-	payload := Payload{
+	payload := JwtPayload{
 		Sub: "123",
 		Exp: time.Now().Unix() + 100000,
-		Pub: userPub,
+		Pub: struct {
+			ID    *int   `json:"user_id"`
+			Email string `json:"email"`
+		}{
+			ID:    &id,
+			Email: "Murphy@jwt.com",
+		},
 	}
 	token, err := Encode(payload, secret)
 	if err != nil {
 		t.Errorf("Error: %s", err.Error())
 	}
-	payloadDecoded, err := Decode(token, secret)
+	payloadDecoded := JwtPayload{}
+	err = Decode(token, secret, payloadDecoded)
 	if err != nil {
 		t.Errorf("Error: %s", err.Error())
 	}
 	if payload.Exp != payloadDecoded.Exp {
 		t.Errorf("Error: payload data not matched")
 	}
-	userPubRes := UserPub{}
-	userPubBytes, _ := json.Marshal(payloadDecoded.Pub)
-	json.Unmarshal(userPubBytes, &userPubRes)
-	if userPub.Email != userPubRes.Email || *userPub.ID != *userPubRes.ID {
+	if payloadDecoded.Pub.Email != payload.Pub.Email || *payloadDecoded.Pub.ID != *payload.Pub.ID {
 		t.Errorf("Error: payload pub not matched")
 	}
 }

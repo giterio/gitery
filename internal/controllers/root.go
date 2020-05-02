@@ -32,7 +32,7 @@ func (h *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	default:
 		ctx := r.Context()
-		err := models.NotFoundError(ctx)
+		err := models.NotFoundError(ctx, nil)
 		views.RenderError(ctx, w, err)
 	}
 }

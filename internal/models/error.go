@@ -16,7 +16,7 @@ type Error struct {
 	ErrorCode   int               `json:"error_code"`
 	Description string            `json:"description"`
 	Trace       map[string]string `json:"trace"`
-	Timestamp   time.Time
+	Timestamp   time.Time         `json:"-"`
 }
 
 // Error ...
@@ -62,27 +62,27 @@ func ServerError(ctx context.Context, err error) Error {
 }
 
 // BadRequestError means the request URL is illegal or request body cannot be parsed
-func BadRequestError(ctx context.Context) Error {
+func BadRequestError(ctx context.Context, err error) Error {
 	description := "The request URL is illegal or request body cannot be parsed"
-	return createError(ctx, http.StatusAccepted, http.StatusBadRequest, description, nil)
+	return createError(ctx, http.StatusAccepted, http.StatusBadRequest, description, err)
 }
 
 // AuthorizationError return 401 for unauthorized request
-func AuthorizationError(ctx context.Context) Error {
+func AuthorizationError(ctx context.Context, err error) Error {
 	description := "Unauthorized, maybe invalid token."
-	return createError(ctx, http.StatusAccepted, http.StatusUnauthorized, description, nil)
+	return createError(ctx, http.StatusAccepted, http.StatusUnauthorized, description, err)
 }
 
 // ForbiddenError return 403 for unauthorized request
-func ForbiddenError(ctx context.Context) Error {
+func ForbiddenError(ctx context.Context, err error) Error {
 	description := http.StatusText(http.StatusForbidden)
-	return createError(ctx, http.StatusAccepted, http.StatusForbidden, description, nil)
+	return createError(ctx, http.StatusAccepted, http.StatusForbidden, description, err)
 }
 
 // NotFoundError means resource is not found.
-func NotFoundError(ctx context.Context) Error {
+func NotFoundError(ctx context.Context, err error) Error {
 	description := http.StatusText(http.StatusNotFound)
-	return createError(ctx, http.StatusAccepted, http.StatusNotFound, description, nil)
+	return createError(ctx, http.StatusAccepted, http.StatusNotFound, description, err)
 }
 
 // TransactionError means there is something wrong on database.
@@ -92,19 +92,19 @@ func TransactionError(ctx context.Context, err error) Error {
 }
 
 // IdentityNonExistError means email or username is not existent.
-func IdentityNonExistError(ctx context.Context) Error {
+func IdentityNonExistError(ctx context.Context, err error) Error {
 	description := "Email or Username is not exist."
-	return createError(ctx, http.StatusAccepted, 10011, description, nil)
+	return createError(ctx, http.StatusAccepted, 10011, description, err)
 }
 
 // InvalidPasswordError means the password is invalid.
-func InvalidPasswordError(ctx context.Context) Error {
+func InvalidPasswordError(ctx context.Context, err error) Error {
 	description := "Password invalid."
-	return createError(ctx, http.StatusAccepted, 10012, description, nil)
+	return createError(ctx, http.StatusAccepted, 10012, description, err)
 }
 
 // PasswordTooSimpleError means the password is too simple.
-func PasswordTooSimpleError(ctx context.Context) Error {
+func PasswordTooSimpleError(ctx context.Context, err error) Error {
 	description := "Password too simple, at least 8 characters required."
-	return createError(ctx, http.StatusAccepted, 10013, description, nil)
+	return createError(ctx, http.StatusAccepted, 10013, description, err)
 }
