@@ -2,7 +2,7 @@ default: &default
   name: fallback configuration
   version: "0.0.1"
   http:
-    host: http://127.0.0.1
+    host: 127.0.0.1
     port: 8080
   database:
     user: gitery

@@ -20,31 +20,31 @@ func wrapMiddlewares(h http.Handler) http.Handler {
 }
 
 func main() {
+	// init project configuration
 	appConfig, err := config.Init(config.Development)
 	if err != nil {
 		panic(err)
 	}
-
-	dbConfig := appConfig.Database
 	// connect to the Db
+	dbConfig := appConfig.Database
 	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		dbConfig.Host, dbConfig.Port, dbConfig.User, dbConfig.Password, dbConfig.Name)
-
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
 		panic(err)
 	}
-
-	router := &controllers.RootHandler{
+	// init root handler with sub-handlers
+	rootHandler := &controllers.RootHandler{
 		AuthHandler:    &controllers.AuthHandler{Model: &models.AuthService{DB: db, JwtSecret: appConfig.JwtSecret}},
 		UserHandler:    &controllers.UserHandler{Model: &models.UserService{DB: db}},
 		PostHandler:    &controllers.PostHandler{Model: &models.PostService{DB: db}},
 		CommentHandler: &controllers.CommentHandler{Model: &models.CommentService{DB: db}},
 	}
-
+	// config the server
 	server := http.Server{
-		Addr:    "127.0.0.1:8080",
-		Handler: wrapMiddlewares(router),
+		Addr:    appConfig.HTTP.Host + ":" + appConfig.HTTP.Port,
+		Handler: wrapMiddlewares(rootHandler),
 	}
+	// start the server
 	server.ListenAndServe()
 }

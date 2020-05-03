@@ -31,16 +31,14 @@ func (as *AuthService) Login(ctx context.Context, auth prototypes.Auth) (token s
 		err = InvalidPasswordError(ctx, err)
 		return
 	}
+	userPub := prototypes.JwtUserPub{
+		ID:    user.ID,
+		Email: user.Email,
+	}
 	payload := prototypes.JwtPayload{
 		Iat: time.Now().Unix(),
 		Exp: time.Now().Add(time.Hour * 24 * 7).Unix(),
-		Pub: struct {
-			ID    *int   `json:"user_id"`
-			Email string `json:"email"`
-		}{
-			ID:    user.ID,
-			Email: user.Email,
-		},
+		Pub: userPub,
 	}
 	token, err = jwt.Encode(payload, as.JwtSecret)
 	return

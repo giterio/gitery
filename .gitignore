@@ -3,6 +3,9 @@ configs/*
 !configs/config.go
 !configs/config.example
 
+# deployment
+deployments/*
+
 # Binaries for programs and plugins
 *.exe
 *.exe~

@@ -17,6 +17,7 @@ type AuthHandler struct {
 func (h *AuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
 	switch r.Method {
+	// handle login event
 	case http.MethodPost:
 		err = h.handlePost(w, r)
 	}

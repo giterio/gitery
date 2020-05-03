@@ -109,13 +109,13 @@ func (h *UserHandler) handlePatch(w http.ResponseWriter, r *http.Request) (err e
 
 func (h *UserHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
-	user := prototypes.User{}
-	err = json.NewDecoder(r.Body).Decode(&user)
+	auth := prototypes.Auth{}
+	err = json.NewDecoder(r.Body).Decode(&auth)
 	if err != nil {
 		err = models.BadRequestError(ctx, err)
 		return
 	}
-	err = h.Model.Delete(ctx, &user)
+	err = h.Model.Delete(ctx, &auth)
 	if err != nil {
 		err = models.TransactionError(ctx, err)
 		return

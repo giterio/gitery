@@ -53,6 +53,7 @@ func Init(env EnvType) (appConfig *Option, err error) {
 	}
 
 	var options map[EnvType]Option
+	// fill the options map with config data from yaml
 	err = yaml.Unmarshal(data, &options)
 	if err != nil {
 		return

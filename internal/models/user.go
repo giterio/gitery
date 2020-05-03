@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 
+	"golang.org/x/crypto/bcrypt"
+
 	"gitery/internal/prototypes"
 )
 
@@ -40,7 +42,19 @@ func (us *UserService) Update(ctx context.Context, user *prototypes.User) (err e
 }
 
 // Delete a post
-func (us *UserService) Delete(ctx context.Context, user *prototypes.User) (err error) {
-	_, err = us.DB.ExecContext(ctx, "delete from users where email = $1 and hashed_pwd returning id", user.Email, user.HashedPwd)
+func (us *UserService) Delete(ctx context.Context, auth *prototypes.Auth) (err error) {
+	user := prototypes.User{}
+	err = us.DB.QueryRowContext(ctx, "select id, email, hashed_pwd, created_at, updated_at from users where email = $1", auth.Email).Scan(
+		&user.ID, &user.Email, &user.HashedPwd, &user.CreatedAt, &user.UpdatedAt)
+	if err != nil {
+		err = IdentityNonExistError(ctx, err)
+		return
+	}
+	err = bcrypt.CompareHashAndPassword([]byte(user.HashedPwd), []byte(auth.Password))
+	if err != nil {
+		err = InvalidPasswordError(ctx, err)
+		return
+	}
+	_, err = us.DB.ExecContext(ctx, "delete from users where id=$1", user.ID)
 	return
 }

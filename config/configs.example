@@ -8,6 +8,7 @@ default: &default
     password: ""
     host: localhost
     port: 5432
+    name: satellity
   github:
     client_id: b9b78f
     client_secret: d4e571ce
