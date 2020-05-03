@@ -58,7 +58,7 @@ func (ps *PostService) Update(ctx context.Context, post *prototypes.Post) (err e
 }
 
 // Delete a post
-func (ps *PostService) Delete(ctx context.Context, id int) (err error) {
-	_, err = ps.DB.ExecContext(ctx, "delete from posts where id = $1", id)
+func (ps *PostService) Delete(ctx context.Context, post *prototypes.Post) (err error) {
+	_, err = ps.DB.ExecContext(ctx, "delete from posts where id = $1 and user_id =$2", post.ID, post.UserID)
 	return
 }

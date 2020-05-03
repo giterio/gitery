@@ -13,7 +13,8 @@ import (
 
 // UserHandler ...
 type UserHandler struct {
-	Model prototypes.UserService
+	Model           prototypes.UserService
+	UserPostHandler prototypes.UserPostService
 }
 
 func (h *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

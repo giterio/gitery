@@ -40,7 +40,7 @@ func (cs *CommentService) Update(ctx context.Context, comment *prototypes.Commen
 }
 
 // Delete a comment
-func (cs *CommentService) Delete(ctx context.Context, id int) (err error) {
-	_, err = cs.DB.ExecContext(ctx, "delete from comments where id = $1", id)
+func (cs *CommentService) Delete(ctx context.Context, comment *prototypes.Comment) (err error) {
+	_, err = cs.DB.ExecContext(ctx, "delete from comments where id = $1 and user_id = $2", comment.ID, comment.UserID)
 	return
 }

@@ -58,3 +58,13 @@ func (us *UserService) Delete(ctx context.Context, auth *prototypes.Auth) (err e
 	_, err = us.DB.ExecContext(ctx, "delete from users where id=$1", user.ID)
 	return
 }
+
+// UserPostService ...
+type UserPostService struct {
+	DB *sql.DB
+}
+
+// Fetch ...
+func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []prototypes.Post, err error) {
+	return
+}
