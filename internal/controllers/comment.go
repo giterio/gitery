@@ -79,7 +79,7 @@ func (h *CommentHandler) handlePatch(w http.ResponseWriter, r *http.Request) (er
 		return
 	}
 	// the comment requested to update is not belong to current user
-	if comment.UserID != payload.Pub.ID {
+	if *comment.UserID != *payload.Pub.ID {
 		err = models.ForbiddenError(ctx, nil)
 		return
 	}

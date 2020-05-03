@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"gitery/internal/prototypes"
 )
@@ -52,8 +53,8 @@ func (ps *PostService) Create(ctx context.Context, post *prototypes.Post) (err e
 
 // Update a post
 func (ps *PostService) Update(ctx context.Context, post *prototypes.Post) (err error) {
-	err = ps.DB.QueryRowContext(ctx, "update posts set content = $2, user_id = $3 where id = $1 returning updated_at",
-		post.ID, post.Content, post.UserID).Scan(&post.UpdatedAt)
+	err = ps.DB.QueryRowContext(ctx, "update posts set content = $1, updated_at = $2 where id = $3 and user_id = $4 returning updated_at",
+		post.Content, time.Now(), post.ID, post.UserID).Scan(&post.UpdatedAt)
 	return
 }
 

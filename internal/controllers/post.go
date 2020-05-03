@@ -100,7 +100,7 @@ func (h *PostHandler) handlePatch(w http.ResponseWriter, r *http.Request) (err e
 		return
 	}
 	// the post requested to update is not belong to current user
-	if post.UserID != payload.Pub.ID {
+	if *post.UserID != *payload.Pub.ID {
 		err = models.ForbiddenError(ctx, nil)
 		return
 	}

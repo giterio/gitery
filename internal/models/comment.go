@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	"gitery/internal/prototypes"
 )
@@ -34,8 +35,8 @@ func (cs *CommentService) Create(ctx context.Context, comment *prototypes.Commen
 
 // Update a comment
 func (cs *CommentService) Update(ctx context.Context, comment *prototypes.Comment) (err error) {
-	err = cs.DB.QueryRowContext(ctx, "update comments set content = $2, updated_at = $4 where id = $1 returning updated_at",
-		comment.ID, comment.Content).Scan(&comment.UpdatedAt)
+	err = cs.DB.QueryRowContext(ctx, "update comments set content = $1, updated_at = $2 where id = $3 and user_id = $4 returning updated_at",
+		comment.Content, time.Now(), comment.ID, comment.UserID).Scan(&comment.UpdatedAt)
 	return
 }
 

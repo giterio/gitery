@@ -55,7 +55,7 @@ func (us *UserService) Delete(ctx context.Context, auth *prototypes.Auth) (err e
 		err = InvalidPasswordError(ctx, err)
 		return
 	}
-	_, err = us.DB.ExecContext(ctx, "delete from users where id=$1", user.ID)
+	_, err = us.DB.ExecContext(ctx, "delete from users where id = $1", user.ID)
 	return
 }
 
