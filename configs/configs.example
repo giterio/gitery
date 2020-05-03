@@ -1,0 +1,25 @@
+default: &default
+  name: fallback configuration
+  version: "0.0.1"
+  http:
+    host: 127.0.0.1
+    port: 8080
+  database:
+    user: gitery
+    password: "ThisIsPassword"
+    host: 127.0.0.1
+    port: 5432
+    name: gitery
+  jwt_secret: "ThisIsJwtSecret"
+
+development:
+  <<: *default
+  name: development configuration
+  database:
+    name: gitery
+
+production:
+  <<: *default
+  name: production configuration
+  database:
+    name: gitery_prod
