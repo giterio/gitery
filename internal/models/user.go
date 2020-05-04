@@ -50,6 +50,7 @@ func (us *UserService) Delete(ctx context.Context, auth *prototypes.Auth) (err e
 		err = IdentityNonExistError(ctx, err)
 		return
 	}
+	// check if hash matched password
 	err = bcrypt.CompareHashAndPassword([]byte(user.HashedPwd), []byte(auth.Password))
 	if err != nil {
 		err = InvalidPasswordError(ctx, err)
@@ -66,6 +67,7 @@ type UserPostService struct {
 
 // Fetch ...
 func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []prototypes.Post, err error) {
+	// postMap is used to assemble posts and comments efficiently
 	postMap := map[int]*prototypes.Post{}
 
 	postRows, err := ups.DB.QueryContext(ctx, "select id, content, created_at, updated_at from posts where user_id =$1", id)
@@ -85,6 +87,7 @@ func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []prototyp
 	if err != nil {
 		return
 	}
+	// Assemble comments with post structure
 	for commentRows.Next() {
 		comment := prototypes.Comment{UserID: &id}
 		err = commentRows.Scan(&comment.ID, &comment.Content, &comment.PostID, &comment.CreatedAt, &comment.UpdatedAt)

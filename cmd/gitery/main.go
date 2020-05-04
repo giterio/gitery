@@ -14,7 +14,7 @@ import (
 )
 
 func wrapMiddlewares(h http.Handler) http.Handler {
-	h = middlewares.Authentication(h)
+	h = middlewares.Authentication(h) // need access to RootHandler, should be the first one
 	h = middlewares.Constraint(h)
 	return middlewares.LoadContext(h)
 }

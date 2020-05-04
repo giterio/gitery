@@ -39,13 +39,15 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // Retrieve a post
 // GET /post/1
 func (h *PostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err error) {
-	resource, _ := models.ShiftRoute(r)
 	ctx := r.Context()
+	// parse post ID from URL
+	resource, _ := models.ShiftRoute(r)
 	id, err := strconv.Atoi(resource)
 	if err != nil {
 		err = models.BadRequestError(ctx, err)
 		return
 	}
+	// fetch post from DB
 	post, err := h.Model.Fetch(ctx, id)
 	if err != nil {
 		err = models.TransactionError(ctx, err)
@@ -59,11 +61,13 @@ func (h *PostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err err
 // POST /post/
 func (h *PostHandler) handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
+	// Check user auth
 	payload, ok := ctx.Value(prototypes.UserKey).(prototypes.JwtPayload)
 	if !ok {
 		err = models.AuthorizationError(ctx, err)
 		return
 	}
+	// retrieve post data from request body
 	post := prototypes.Post{}
 	err = json.NewDecoder(r.Body).Decode(&post)
 	if err != nil {
@@ -85,17 +89,20 @@ func (h *PostHandler) handlePost(w http.ResponseWriter, r *http.Request) (err er
 // PUT /post/1
 func (h *PostHandler) handlePatch(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
+	// Check user auth
 	payload, ok := ctx.Value(prototypes.UserKey).(prototypes.JwtPayload)
 	if !ok {
 		err = models.AuthorizationError(ctx, err)
 		return
 	}
+	// parse post ID from URL
 	resource, _ := models.ShiftRoute(r)
 	id, err := strconv.Atoi(resource)
 	if err != nil {
 		err = models.BadRequestError(ctx, err)
 		return
 	}
+	// fetch post from DB
 	post, err := h.Model.Fetch(ctx, id)
 	if err != nil {
 		err = models.TransactionError(ctx, err)
@@ -106,11 +113,13 @@ func (h *PostHandler) handlePatch(w http.ResponseWriter, r *http.Request) (err e
 		err = models.ForbiddenError(ctx, nil)
 		return
 	}
+	// merge and update post instance
 	err = json.NewDecoder(r.Body).Decode(&post)
 	if err != nil {
 		err = models.BadRequestError(ctx, err)
 		return
 	}
+	// update post in DB
 	err = h.Model.Update(ctx, &post)
 	if err != nil {
 		err = models.TransactionError(ctx, err)
@@ -124,11 +133,13 @@ func (h *PostHandler) handlePatch(w http.ResponseWriter, r *http.Request) (err e
 // DELETE /post/1
 func (h *PostHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
+	// Check user auth
 	payload, ok := ctx.Value(prototypes.UserKey).(prototypes.JwtPayload)
 	if !ok {
 		err = models.AuthorizationError(ctx, err)
 		return
 	}
+	// parse post ID from URL
 	resource, _ := models.ShiftRoute(r)
 	id, err := strconv.Atoi(resource)
 	if err != nil {
@@ -139,6 +150,7 @@ func (h *PostHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err 
 		ID:     &id,
 		UserID: payload.Pub.ID,
 	}
+	// delete post from DB
 	err = h.Model.Delete(ctx, &post)
 	if err != nil {
 		err = models.TransactionError(ctx, err)

@@ -23,10 +23,12 @@ func (ps *PostService) Fetch(ctx context.Context, id int) (post prototypes.Post,
 		err = NotFoundError(ctx, err)
 		return
 	}
+	// query comments related to the post
 	rows, err := ps.DB.QueryContext(ctx, "select id, content, user_id, created_at, updated_at from comments where post_id =$1", id)
 	if err != nil {
 		return
 	}
+	// Assemble comments with post structure
 	for rows.Next() {
 		comment := prototypes.Comment{PostID: &id}
 		err = rows.Scan(&comment.ID, &comment.Content, &comment.UserID, &comment.CreatedAt, &comment.UpdatedAt)

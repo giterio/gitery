@@ -22,7 +22,7 @@ func (cs *CommentService) Fetch(ctx context.Context, id int) (comment prototypes
 	return
 }
 
-// Create ...
+// Create comment
 func (cs *CommentService) Create(ctx context.Context, comment *prototypes.Comment) (err error) {
 	if comment.PostID == nil {
 		err = errors.New("Post not found")
