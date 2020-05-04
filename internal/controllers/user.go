@@ -15,13 +15,33 @@ import (
 // UserHandler ...
 type UserHandler struct {
 	Model           prototypes.UserService
-	UserPostHandler UserPostHandler
+	UserPostHandler *UserPostHandler
 }
 
 func (h *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
-	// user is the resource to manipulate
 	ctx := r.Context()
+	resource, nextRoute := models.CurrentRoute(r).Shift()
+	if _, err := strconv.Atoi(resource); err == nil {
+		if nextRoute.IsLast() {
+			resource = ""
+		} else {
+			resource, _ = nextRoute.Shift()
+		}
+	}
+
+	if resource != "" {
+		switch resource {
+		case "posts":
+			h.UserPostHandler.ServeHTTP(w, r)
+		default:
+			e := models.ForbiddenError(ctx, nil)
+			views.RenderError(ctx, w, e)
+		}
+		return
+	}
+
+	// user is the resource to manipulate
 	switch r.Method {
 	case http.MethodGet:
 		err = h.handleGet(w, r)
@@ -176,5 +196,30 @@ func (h *UserPostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserPostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err error) {
+	ctx := r.Context()
+	resource, _ := models.ShiftRoute(r)
+	var id int
+	if resource == "posts" {
+		// get current user's id from JWT payload
+		payload, ok := ctx.Value(prototypes.UserKey).(prototypes.JwtPayload)
+		if !ok {
+			err = models.AuthorizationError(ctx, err)
+			return
+		}
+		id = *payload.Pub.ID
+	} else {
+		// parse id from url
+		id, err = strconv.Atoi(resource)
+		if err != nil {
+			err = models.BadRequestError(ctx, err)
+			return
+		}
+	}
+	posts, err := h.Model.Fetch(ctx, id)
+	if err != nil {
+		err = models.TransactionError(ctx, err)
+		return
+	}
+	err = views.RenderPostList(ctx, w, posts)
 	return
 }

@@ -31,7 +31,7 @@ func (route *Route) infestContext(r *http.Request) *http.Request {
 }
 
 // Shift is to get the first parameter from route path and generate next sub-route
-func (route *Route) shift() (resource string, subRoute *Route) {
+func (route *Route) Shift() (resource string, subRoute *Route) {
 	resource, subPath := shiftPath(route.Path)
 	subRoute = &Route{Path: subPath}
 	return
@@ -48,7 +48,7 @@ func CurrentRoute(r *http.Request) (route *Route) {
 	route, ok := ctx.Value(prototypes.RouteKey).(*Route)
 	if !ok {
 		// create a Route with full path
-		route = &Route{Path: r.URL.Path}
+		route = &Route{Path: path.Clean("/" + r.URL.Path)}
 	}
 	return
 }
@@ -57,7 +57,7 @@ func CurrentRoute(r *http.Request) (route *Route) {
 func ShiftRoute(r *http.Request) (resource string, rn *http.Request) {
 	route := CurrentRoute(r)
 	// extract the first parameter and generate a sub-route
-	resource, subRoute := route.shift()
+	resource, subRoute := route.Shift()
 	// bind the sub-route with request's context
 	rn = subRoute.infestContext(r)
 	return

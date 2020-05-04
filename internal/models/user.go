@@ -66,8 +66,8 @@ type UserPostService struct {
 
 // Fetch ...
 func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []prototypes.Post, err error) {
-	posts = []prototypes.Post{}
-	postMap := map[int]prototypes.Post{}
+	postMap := map[int]*prototypes.Post{}
+
 	postRows, err := ups.DB.QueryContext(ctx, "select id, content, created_at, updated_at from posts where user_id =$1", id)
 	if err != nil {
 		return
@@ -78,9 +78,9 @@ func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []prototyp
 		if err != nil {
 			return
 		}
-		postMap[*post.ID] = post
-		posts = append(posts, post)
+		postMap[*post.ID] = &post
 	}
+
 	commentRows, err := ups.DB.QueryContext(ctx, "select id, content, post_id, created_at, updated_at from comments where user_id =$1", id)
 	if err != nil {
 		return
@@ -93,6 +93,11 @@ func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []prototyp
 		}
 		post := postMap[*comment.PostID]
 		post.Comments = append(post.Comments, comment)
+	}
+
+	posts = []prototypes.Post{}
+	for _, post := range postMap {
+		posts = append(posts, *post)
 	}
 	return
 }
