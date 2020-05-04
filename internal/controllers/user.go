@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -40,15 +41,28 @@ func (h *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // Retrieve a user
-// GET /user
+// GET /user or /user/:id
 func (h *UserHandler) handleGet(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
-	payload, ok := ctx.Value(prototypes.UserKey).(prototypes.JwtPayload)
-	if !ok {
-		err = models.AuthorizationError(ctx, err)
-		return
+	resource, _ := models.ShiftRoute(r)
+	var id int
+	if resource == "" {
+		// get current user's id from JWT payload
+		payload, ok := ctx.Value(prototypes.UserKey).(prototypes.JwtPayload)
+		if !ok {
+			err = models.AuthorizationError(ctx, err)
+			return
+		}
+		id = *payload.Pub.ID
+	} else {
+		// parse id from url
+		id, err = strconv.Atoi(resource)
+		if err != nil {
+			err = models.BadRequestError(ctx, err)
+			return
+		}
 	}
-	user, err := h.Model.Fetch(ctx, *payload.Pub.ID)
+	user, err := h.Model.Fetch(ctx, id)
 	if err != nil {
 		err = models.TransactionError(ctx, err)
 		return
@@ -117,10 +131,19 @@ func (h *UserHandler) handlePatch(w http.ResponseWriter, r *http.Request) (err e
 // DELETE /user
 func (h *UserHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
+	payload, ok := ctx.Value(prototypes.UserKey).(prototypes.JwtPayload)
+	if !ok {
+		err = models.AuthorizationError(ctx, err)
+		return
+	}
 	auth := prototypes.Auth{}
 	err = json.NewDecoder(r.Body).Decode(&auth)
 	if err != nil {
 		err = models.BadRequestError(ctx, err)
+		return
+	}
+	if payload.Pub.Email != auth.Email {
+		err = models.AuthorizationError(ctx, err)
 		return
 	}
 	err = h.Model.Delete(ctx, &auth)
