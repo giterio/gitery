@@ -60,20 +60,21 @@ func (us *UserService) Delete(ctx context.Context, auth *prototypes.Auth) (err e
 	return
 }
 
-// UserPostService ...
+// UserPostService supply service about user's posts
 type UserPostService struct {
 	DB *sql.DB
 }
 
-// Fetch ...
+// Fetch user's all posts
 func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []prototypes.Post, err error) {
 	// postMap is used to assemble posts and comments efficiently
 	postMap := map[int]*prototypes.Post{}
-
+	// query all the posts of the user
 	postRows, err := ups.DB.QueryContext(ctx, "select id, content, created_at, updated_at from posts where user_id =$1", id)
 	if err != nil {
 		return
 	}
+	// fill the posts into postMap using post ID as the key
 	for postRows.Next() {
 		post := prototypes.Post{UserID: &id, Comments: []prototypes.Comment{}}
 		err = postRows.Scan(&post.ID, &post.Content, &post.CreatedAt, &post.UpdatedAt)
@@ -82,8 +83,8 @@ func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []prototyp
 		}
 		postMap[*post.ID] = &post
 	}
-
-	commentRows, err := ups.DB.QueryContext(ctx, "select id, content, post_id, created_at, updated_at from comments where user_id =$1", id)
+	// query all the
+	commentRows, err := ups.DB.QueryContext(ctx, "select id, content, post_id, created_at, updated_at from comments where post_id in (select id from posts where user_id = $1)", id)
 	if err != nil {
 		return
 	}
