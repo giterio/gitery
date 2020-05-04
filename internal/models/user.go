@@ -66,5 +66,33 @@ type UserPostService struct {
 
 // Fetch ...
 func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []prototypes.Post, err error) {
+	posts = []prototypes.Post{}
+	postMap := map[int]prototypes.Post{}
+	postRows, err := ups.DB.QueryContext(ctx, "select id, content, created_at, updated_at from posts where user_id =$1", id)
+	if err != nil {
+		return
+	}
+	for postRows.Next() {
+		post := prototypes.Post{UserID: &id, Comments: []prototypes.Comment{}}
+		err = postRows.Scan(&post.ID, &post.Content, &post.CreatedAt, &post.UpdatedAt)
+		if err != nil {
+			return
+		}
+		postMap[*post.ID] = post
+		posts = append(posts, post)
+	}
+	commentRows, err := ups.DB.QueryContext(ctx, "select id, content, post_id, created_at, updated_at from comments where user_id =$1", id)
+	if err != nil {
+		return
+	}
+	for commentRows.Next() {
+		comment := prototypes.Comment{UserID: &id}
+		err = commentRows.Scan(&comment.ID, &comment.Content, &comment.PostID, &comment.CreatedAt, &comment.UpdatedAt)
+		if err != nil {
+			return
+		}
+		post := postMap[*comment.PostID]
+		post.Comments = append(post.Comments, comment)
+	}
 	return
 }

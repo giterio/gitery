@@ -17,6 +17,7 @@ type PostHandler struct {
 
 func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
+	ctx := r.Context()
 	switch r.Method {
 	case http.MethodGet:
 		err = h.handleGet(w, r)
@@ -26,9 +27,10 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err = h.handlePatch(w, r)
 	case http.MethodDelete:
 		err = h.handleDelete(w, r)
+	default:
+		err = models.ForbiddenError(ctx, nil)
 	}
 	if err != nil {
-		ctx := r.Context()
 		e := models.ServerError(ctx, err)
 		views.RenderError(ctx, w, e)
 	}
@@ -99,7 +101,7 @@ func (h *PostHandler) handlePatch(w http.ResponseWriter, r *http.Request) (err e
 		err = models.TransactionError(ctx, err)
 		return
 	}
-	// the post requested to update is not belong to current user
+	// the post requested to update does not belong to current user
 	if *post.UserID != *payload.Pub.ID {
 		err = models.ForbiddenError(ctx, nil)
 		return

@@ -16,13 +16,15 @@ type AuthHandler struct {
 
 func (h *AuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
+	ctx := r.Context()
 	switch r.Method {
 	// handle login event
 	case http.MethodPost:
 		err = h.handlePost(w, r)
+	default:
+		err = models.ForbiddenError(ctx, nil)
 	}
 	if err != nil {
-		ctx := r.Context()
 		e := models.ServerError(ctx, err)
 		views.RenderError(ctx, w, e)
 	}

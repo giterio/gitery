@@ -14,11 +14,13 @@ import (
 // UserHandler ...
 type UserHandler struct {
 	Model           prototypes.UserService
-	UserPostHandler prototypes.UserPostService
+	UserPostHandler UserPostHandler
 }
 
 func (h *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
+	// user is the resource to manipulate
+	ctx := r.Context()
 	switch r.Method {
 	case http.MethodGet:
 		err = h.handleGet(w, r)
@@ -28,16 +30,17 @@ func (h *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err = h.handlePatch(w, r)
 	case http.MethodDelete:
 		err = h.handleDelete(w, r)
+	default:
+		err = models.ForbiddenError(ctx, nil)
 	}
 	if err != nil {
-		ctx := r.Context()
 		e := models.ServerError(ctx, err)
 		views.RenderError(ctx, w, e)
 	}
 }
 
 // Retrieve a user
-// GET /user/1
+// GET /user
 func (h *UserHandler) handleGet(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
 	payload, ok := ctx.Value(prototypes.UserKey).(prototypes.JwtPayload)
@@ -55,6 +58,7 @@ func (h *UserHandler) handleGet(w http.ResponseWriter, r *http.Request) (err err
 }
 
 // create a user
+// POST /user
 func (h *UserHandler) handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
 	register := prototypes.Register{}
@@ -82,6 +86,7 @@ func (h *UserHandler) handlePost(w http.ResponseWriter, r *http.Request) (err er
 }
 
 // update user information
+// Patch /user
 func (h *UserHandler) handlePatch(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
 	payload, ok := ctx.Value(prototypes.UserKey).(prototypes.JwtPayload)
@@ -108,6 +113,8 @@ func (h *UserHandler) handlePatch(w http.ResponseWriter, r *http.Request) (err e
 	return
 }
 
+// delete current user
+// DELETE /user
 func (h *UserHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
 	auth := prototypes.Auth{}
@@ -122,5 +129,29 @@ func (h *UserHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err 
 		return
 	}
 	views.RenderEmpty(ctx, w)
+	return
+}
+
+// UserPostHandler ...
+type UserPostHandler struct {
+	Model prototypes.UserPostService
+}
+
+func (h *UserPostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var err error
+	ctx := r.Context()
+	switch r.Method {
+	case http.MethodGet:
+		err = h.handleGet(w, r)
+	default:
+		err = models.ForbiddenError(ctx, nil)
+	}
+	if err != nil {
+		e := models.ServerError(ctx, err)
+		views.RenderError(ctx, w, e)
+	}
+}
+
+func (h *UserPostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err error) {
 	return
 }

@@ -17,6 +17,7 @@ type CommentHandler struct {
 
 func (h *CommentHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
+	ctx := r.Context()
 	switch r.Method {
 	case http.MethodPost:
 		err = h.handlePost(w, r)
@@ -24,9 +25,10 @@ func (h *CommentHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err = h.handlePatch(w, r)
 	case http.MethodDelete:
 		err = h.handleDelete(w, r)
+	default:
+		err = models.ForbiddenError(ctx, nil)
 	}
 	if err != nil {
-		ctx := r.Context()
 		e := models.ServerError(ctx, err)
 		views.RenderError(ctx, w, e)
 	}
@@ -78,7 +80,7 @@ func (h *CommentHandler) handlePatch(w http.ResponseWriter, r *http.Request) (er
 		err = models.TransactionError(ctx, err)
 		return
 	}
-	// the comment requested to update is not belong to current user
+	// the comment requested to update does not belong to current user
 	if *comment.UserID != *payload.Pub.ID {
 		err = models.ForbiddenError(ctx, nil)
 		return
