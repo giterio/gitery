@@ -83,7 +83,7 @@ func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []prototyp
 		}
 		postMap[*post.ID] = &post
 	}
-	// query all the
+	// query all the comments related to the posts
 	commentRows, err := ups.DB.QueryContext(ctx, "select id, content, post_id, created_at, updated_at from comments where post_id in (select id from posts where user_id = $1)", id)
 	if err != nil {
 		return
@@ -98,7 +98,7 @@ func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []prototyp
 		post := postMap[*comment.PostID]
 		post.Comments = append(post.Comments, comment)
 	}
-
+	// convert postMap to post list
 	posts = []prototypes.Post{}
 	for _, post := range postMap {
 		posts = append(posts, *post)
