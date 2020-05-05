@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"gitery/internal/prototypes"
 )
@@ -22,10 +23,12 @@ func (ps *PostService) Fetch(ctx context.Context, id int) (post prototypes.Post,
 		err = NotFoundError(ctx, err)
 		return
 	}
+	// query comments related to the post
 	rows, err := ps.DB.QueryContext(ctx, "select id, content, user_id, created_at, updated_at from comments where post_id =$1", id)
 	if err != nil {
 		return
 	}
+	// Assemble comments with post structure
 	for rows.Next() {
 		comment := prototypes.Comment{PostID: &id}
 		err = rows.Scan(&comment.ID, &comment.Content, &comment.UserID, &comment.CreatedAt, &comment.UpdatedAt)
@@ -52,13 +55,13 @@ func (ps *PostService) Create(ctx context.Context, post *prototypes.Post) (err e
 
 // Update a post
 func (ps *PostService) Update(ctx context.Context, post *prototypes.Post) (err error) {
-	err = ps.DB.QueryRowContext(ctx, "update posts set content = $2, user_id = $3 where id = $1 returning updated_at",
-		post.ID, post.Content, post.UserID).Scan(&post.UpdatedAt)
+	err = ps.DB.QueryRowContext(ctx, "update posts set content = $1, updated_at = $2 where id = $3 and user_id = $4 returning updated_at",
+		post.Content, time.Now(), post.ID, post.UserID).Scan(&post.UpdatedAt)
 	return
 }
 
 // Delete a post
-func (ps *PostService) Delete(ctx context.Context, id int) (err error) {
-	_, err = ps.DB.ExecContext(ctx, "delete from posts where id = $1", id)
+func (ps *PostService) Delete(ctx context.Context, post *prototypes.Post) (err error) {
+	_, err = ps.DB.ExecContext(ctx, "delete from posts where id = $1 and user_id =$2", post.ID, post.UserID)
 	return
 }

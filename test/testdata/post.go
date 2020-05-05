@@ -25,6 +25,6 @@ func (ps *FakePostService) Update(ctx context.Context, post *prototypes.Post) (e
 }
 
 // Delete ...
-func (ps *FakePostService) Delete(ctx context.Context, id int) (err error) {
+func (ps *FakePostService) Delete(ctx context.Context, post *prototypes.Post) (err error) {
 	return
 }

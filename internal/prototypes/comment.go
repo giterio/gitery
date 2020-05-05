@@ -20,5 +20,5 @@ type CommentService interface {
 	Fetch(ctx context.Context, id int) (comment Comment, err error)
 	Create(ctx context.Context, comment *Comment) (err error)
 	Update(ctx context.Context, comment *Comment) (err error)
-	Delete(ctx context.Context, id int) (err error)
+	Delete(ctx context.Context, comment *Comment) (err error)
 }

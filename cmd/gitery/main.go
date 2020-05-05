@@ -14,7 +14,7 @@ import (
 )
 
 func wrapMiddlewares(h http.Handler) http.Handler {
-	h = middlewares.Authentication(h)
+	h = middlewares.Authentication(h) // need access to RootHandler, should be the first one
 	h = middlewares.Constraint(h)
 	return middlewares.LoadContext(h)
 }
@@ -35,8 +35,11 @@ func main() {
 	}
 	// init root handler with sub-handlers
 	rootHandler := &controllers.RootHandler{
-		AuthHandler:    &controllers.AuthHandler{Model: &models.AuthService{DB: db, JwtSecret: appConfig.JwtSecret}},
-		UserHandler:    &controllers.UserHandler{Model: &models.UserService{DB: db}},
+		AuthHandler: &controllers.AuthHandler{Model: &models.AuthService{DB: db, JwtSecret: appConfig.JwtSecret}},
+		UserHandler: &controllers.UserHandler{
+			Model:           &models.UserService{DB: db},
+			UserPostHandler: &controllers.UserPostHandler{Model: &models.UserPostService{DB: db}},
+		},
 		PostHandler:    &controllers.PostHandler{Model: &models.PostService{DB: db}},
 		CommentHandler: &controllers.CommentHandler{Model: &models.CommentService{DB: db}},
 	}

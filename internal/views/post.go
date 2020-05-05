@@ -35,3 +35,13 @@ func RenderPost(ctx context.Context, w http.ResponseWriter, post prototypes.Post
 	err = Render(ctx, w, postView)
 	return
 }
+
+// RenderPostList ...
+func RenderPostList(ctx context.Context, w http.ResponseWriter, posts []prototypes.Post) (err error) {
+	postListView := []PostView{}
+	for _, post := range posts {
+		postListView = append(postListView, BuildPostView(post))
+	}
+	err = Render(ctx, w, postListView)
+	return
+}

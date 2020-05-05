@@ -19,7 +19,7 @@ func shiftPath(p string) (head, tail string) {
 	return p[1:i], p[i:]
 }
 
-// Route ...
+// Route encapsulate the request URL and provide methods to parse the resoure from URL
 type Route struct {
 	Path string // remaining path to explore
 }
@@ -31,26 +31,33 @@ func (route *Route) infestContext(r *http.Request) *http.Request {
 }
 
 // Shift is to get the first parameter from route path and generate next sub-route
-func (route *Route) shift() (resource string, subRoute *Route) {
+func (route *Route) Shift() (resource string, subRoute *Route) {
 	resource, subPath := shiftPath(route.Path)
-	if subPath == "/" {
-		return
-	}
 	subRoute = &Route{Path: subPath}
+	return
+}
+
+// IsLast is method to check if there is no more resource in route
+func (route *Route) IsLast() bool {
+	return route.Path == "/"
+}
+
+// CurrentRoute retrieve Route from request
+func CurrentRoute(r *http.Request) (route *Route) {
+	ctx := r.Context()
+	route, ok := ctx.Value(prototypes.RouteKey).(*Route)
+	if !ok {
+		// create a Route with full path
+		route = &Route{Path: path.Clean("/" + r.URL.Path)}
+	}
 	return
 }
 
 // ShiftRoute is to shift resource name from request and generate next sub-route
 func ShiftRoute(r *http.Request) (resource string, rn *http.Request) {
-	ctx := r.Context()
-	rv := ctx.Value(prototypes.RouteKey)
-	route, ok := rv.(*Route)
-	if !ok {
-		// create a Route with full path
-		route = &Route{Path: r.URL.Path}
-	}
-	// extract the first parameter and generate a sub-route
-	resource, subRoute := route.shift()
+	route := CurrentRoute(r)
+	// extract the first resource and generate a sub-route
+	resource, subRoute := route.Shift()
 	// bind the sub-route with request's context
 	rn = subRoute.infestContext(r)
 	return

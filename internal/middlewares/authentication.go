@@ -23,6 +23,7 @@ func Authentication(h http.Handler) http.Handler {
 				err := models.ServerError(ctx, nil)
 				views.RenderError(ctx, w, err)
 			}
+			// verify if token is valid
 			payload, err := h.AuthHandler.Model.Verify(ctx, token)
 			if err == nil {
 				ctx = context.WithValue(ctx, prototypes.UserKey, payload)

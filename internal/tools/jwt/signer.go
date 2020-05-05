@@ -12,11 +12,13 @@ func base64URLMarshal(raw interface{}) (base64Str string, err error) {
 	if err != nil {
 		return
 	}
+	// base64 URL encode data without padding '='
 	base64Str = base64.RawURLEncoding.EncodeToString(bytes)
 	return
 }
 
 func base64URLUnmarshal(base64Str string, v interface{}) (err error) {
+	// base64 URL decode data without padding '='
 	bytes, err := base64.RawURLEncoding.DecodeString(base64Str)
 	if err != nil {
 		return

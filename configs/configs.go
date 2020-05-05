@@ -46,7 +46,7 @@ func Init(env EnvType) (appConfig *Option, err error) {
 	if err != nil {
 		log.Panicln(err)
 	}
-	file := path.Join(dir, "../..", "config/config.yaml")
+	file := path.Join(dir, "../..", "configs/configs.yaml")
 	data, err := ioutil.ReadFile(file)
 	if err != nil {
 		return
