@@ -24,11 +24,10 @@ func (h *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// get current resource from URL
 	resource, nextRoute := models.CurrentRoute(r).Shift()
 	if _, err := strconv.Atoi(resource); err == nil {
-		// pattern /user/:id/*
-		if nextRoute.IsLast() {
+		if nextRoute.IsLast() { // pattern /user/:id/*
 			// no more sub route
 			resource = ""
-		} else {
+		} else { // pattern /user/*
 			// override current resource with sub-route resource
 			resource, _ = nextRoute.Shift()
 		}

@@ -27,6 +27,7 @@ func Encode(payload interface{}, secret string) (token string, err error) {
 	}
 
 	msg := headerBase64URL + "." + payloadBase64URL
+	// encrypt URLBase64(header).URLBase64(payload) to generate signature
 	sig := sign(msg, secret)
 	token = msg + "." + sig
 	return
