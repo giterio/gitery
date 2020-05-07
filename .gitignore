@@ -5,8 +5,13 @@ configs/*
 
 # deployment
 deployments/*
+!deployments/dockerfile
+
+# build folder
+bin/*
 
 # Binaries for programs and plugins
+bin/*
 *.exe
 *.exe~
 *.dll
