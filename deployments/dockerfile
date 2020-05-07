@@ -1,11 +1,7 @@
 FROM golang:alpine AS builder
 RUN apk --no-cache add gcc g++ make git
-# uncomment following two lines if clone open source project from Github
-# WORKDIR /go/src
-# RUN git clone -b master git@github.com:acebeing/gitery.git
 WORKDIR /go/src/gitery
-# Copy source file from local to container
-COPY . .
+COPY ./.. .
 RUN go get
 RUN GOOS=linux go build -ldflags="-s -w" -o ./bin/gitery ./cmd/gitery
 
