@@ -2,7 +2,11 @@
 FROM golang:alpine AS builder
 RUN apk --no-cache add gcc g++ make git
 WORKDIR /go/src/gitery
+<<<<<<< HEAD:dockerfile
 # copy project files into container's work directory
+=======
+# Copy project files into container's work directory
+>>>>>>> d984e6f0d915c0a76b5b52b15ab98b9baebcdf88:Dockerfile
 COPY . .
 RUN go mod download
 RUN mkdir -p bin && cp ./configs/configs.yaml ./bin/
