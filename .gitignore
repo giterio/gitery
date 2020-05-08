@@ -3,10 +3,6 @@ configs/*
 !configs/configs.go
 !configs/configs.example
 
-# deployment
-deployments/*
-!deployments/dockerfile
-
 # build folder
 bin/*
 
