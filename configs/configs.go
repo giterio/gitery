@@ -1,6 +1,7 @@
 package configs
 
 import (
+	"errors"
 	"io/ioutil"
 	"log"
 	"os"
@@ -41,6 +42,10 @@ type Option struct {
 
 // Init is using to initialize the configs
 func Init(env EnvType) (appConfig *Option, err error) {
+	if env != Development && env != Production {
+		err = errors.New("Wrong env argument")
+		return
+	}
 	// current directory of runtime: /cmd/gitery
 	dir, err := os.Getwd()
 	if err != nil {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"flag"
 	"fmt"
 	"net/http"
 
@@ -20,8 +21,11 @@ func wrapMiddlewares(h http.Handler) http.Handler {
 }
 
 func main() {
+	var env string
+	flag.StringVar(&env, "env", string(configs.Development), "Deployment environment")
+	flag.Parse()
 	// init project configuration
-	appConfig, err := configs.Init(configs.Development)
+	appConfig, err := configs.Init(configs.EnvType(env))
 	if err != nil {
 		panic(err)
 	}
