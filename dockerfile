@@ -1,6 +1,8 @@
+# This dockerfile is aim to build and deploy on server directly
 FROM golang:alpine AS builder
 RUN apk --no-cache add gcc g++ make git
 WORKDIR /go/src/gitery
+# copy project files into container's work directory
 COPY . .
 RUN go mod download
 RUN mkdir -p bin && cp ./configs/configs.yaml ./bin/

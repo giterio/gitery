@@ -3,9 +3,6 @@ configs/*
 !configs/configs.go
 !configs/configs.example
 
-# build folder
-bin/*
-
 # Binaries for programs and plugins
 bin/*
 *.exe
