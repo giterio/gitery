@@ -23,7 +23,7 @@ bin/*
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
-# VSCode debug mode
+# Debug config and cache
 .vscode
 *_bin
 
