@@ -22,7 +22,7 @@ func wrapMiddlewares(h http.Handler) http.Handler {
 
 func main() {
 	var env string
-	flag.StringVar(&env, "env", string(configs.Debug), "Deployment environment")
+	flag.StringVar(&env, "env", string(configs.Debug), "Deployment environment: Debug, Development, Production")
 	flag.Parse()
 	// init project configuration
 	appConfig, err := configs.Init(configs.EnvType(env))
