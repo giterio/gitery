@@ -21,6 +21,7 @@ func wrapMiddlewares(h http.Handler) http.Handler {
 }
 
 func main() {
+	// get environment variable "APP_ENV"
 	env := os.Getenv("APP_ENV")
 	if env != "production" && env != "development" {
 		env = "debug"
