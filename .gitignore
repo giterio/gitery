@@ -1,10 +1,10 @@
 # configuration for project evironment
 configs/*
 !configs/configs.go
-!configs/configs.example
 
 # deployment
 deploy.sh
+deployment/*
 
 # Binaries for programs and plugins
 bin/*
@@ -26,3 +26,6 @@ bin/*
 # VSCode debug mode
 .vscode
 *_bin
+
+# Exclude sample files
+!*.example

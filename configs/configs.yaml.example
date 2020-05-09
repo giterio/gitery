@@ -6,11 +6,11 @@ default: &default
     port: 8080
   database:
     user: gitery
-    password: "ThisIsPassword"
-    host: 127.0.0.1
+    password: "password"
+    host: 0.0.0.0
     port: 5432
     name: gitery
-  jwt_secret: "ThisIsJwtSecret"
+  jwt_secret: "JwtSecret"
 
 development:
   <<: *default
@@ -21,5 +21,12 @@ development:
 production:
   <<: *default
   name: production configuration
+  http:
+    host: 0.0.0.0
+    port: 80
   database:
-    name: gitery_prod
+    user: gitery
+    password: "password"
+    host: postgres # host name in docker network
+    port: 5432
+    name: gitery

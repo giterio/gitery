@@ -2,9 +2,9 @@ package main
 
 import (
 	"database/sql"
-	"flag"
 	"fmt"
 	"net/http"
+	"os"
 
 	_ "github.com/lib/pq"
 
@@ -21,9 +21,10 @@ func wrapMiddlewares(h http.Handler) http.Handler {
 }
 
 func main() {
-	var env string
-	flag.StringVar(&env, "env", string(configs.Debug), "Deployment environment: Debug, Development, Production")
-	flag.Parse()
+	env := os.Getenv("APP_ENV")
+	if env != "production" && env != "development" {
+		env = "debug"
+	}
 	// init project configuration
 	appConfig, err := configs.Init(configs.EnvType(env))
 	if err != nil {

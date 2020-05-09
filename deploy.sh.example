@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# Prerequisites
+# 1. An Linux server with root privileges
+# 2. SSH access to the remote machine
+# 3. Docker installed on remote machine
+# 4. Docker Compose installed on remote machine
+
+make production || exit
+ssh user@xxx.xxx.xxx.xxx mkdir -p gitery || exit
+rsync -chavzP bin user@xxx.xxx.xxx.xxx:gitery || exit
+rsync -chavzP deployment/ user@xxx.xxx.xxx.xxx:gitery || exit
