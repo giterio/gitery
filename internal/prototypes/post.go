@@ -8,6 +8,7 @@ import (
 // Post ...
 type Post struct {
 	ID        *int      `json:"id"`
+	Title     string    `json:"title"`
 	Content   string    `json:"content"`
 	Comments  []Comment `json:"-"` // reconstruct in PostView
 	UserID    *int      `json:"user_id"`

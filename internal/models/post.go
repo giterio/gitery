@@ -17,8 +17,8 @@ type PostService struct {
 func (ps *PostService) Fetch(ctx context.Context, id int) (post prototypes.Post, err error) {
 	post = prototypes.Post{}
 	post.Comments = []prototypes.Comment{}
-	err = ps.DB.QueryRowContext(ctx, "select id, content, user_id, created_at, updated_at from posts where id = $1", id).Scan(
-		&post.ID, &post.Content, &post.UserID, &post.CreatedAt, &post.UpdatedAt)
+	err = ps.DB.QueryRowContext(ctx, "select id, title, content, user_id, created_at, updated_at from posts where id = $1", id).Scan(
+		&post.ID, &post.Title, &post.Content, &post.UserID, &post.CreatedAt, &post.UpdatedAt)
 	if err != nil {
 		err = NotFoundError(ctx, err)
 		return
@@ -42,21 +42,21 @@ func (ps *PostService) Fetch(ctx context.Context, id int) (post prototypes.Post,
 
 // Create a new post
 func (ps *PostService) Create(ctx context.Context, post *prototypes.Post) (err error) {
-	statement := "insert into posts (content, user_id) values ($1, $2) returning id, created_at, updated_at"
+	statement := "insert into posts (title, content, user_id) values ($1, $2) returning id, created_at, updated_at"
 	stmt, err := ps.DB.PrepareContext(ctx, statement)
 	if err != nil {
 		return
 	}
 	defer stmt.Close()
-	err = stmt.QueryRowContext(ctx, post.Content, post.UserID).Scan(&post.ID, &post.CreatedAt, &post.UpdatedAt)
+	err = stmt.QueryRowContext(ctx, post.Title, post.Content, post.UserID).Scan(&post.ID, &post.CreatedAt, &post.UpdatedAt)
 	post.Comments = []prototypes.Comment{}
 	return
 }
 
 // Update a post
 func (ps *PostService) Update(ctx context.Context, post *prototypes.Post) (err error) {
-	err = ps.DB.QueryRowContext(ctx, "update posts set content = $1, updated_at = $2 where id = $3 and user_id = $4 returning updated_at",
-		post.Content, time.Now(), post.ID, post.UserID).Scan(&post.UpdatedAt)
+	err = ps.DB.QueryRowContext(ctx, "update posts set title = $1, content = $2, updated_at = $3 where id = $4 and user_id = $5 returning updated_at",
+		post.Title, post.Content, time.Now(), post.ID, post.UserID).Scan(&post.UpdatedAt)
 	return
 }
 
