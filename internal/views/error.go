@@ -9,14 +9,14 @@ import (
 	"gitery/internal/models"
 )
 
-// ErrorView is a custom error
+// ErrorView is the response data structure for a custom error
 type ErrorView struct {
 	models.Error       // using anonymous member to get flat json structure
 	Ok           bool  `json:"ok"`
 	Timestamp    int64 `json:"timestamp"`
 }
 
-// RenderError ...
+// RenderError writes the ErrorView response to http connection
 func RenderError(ctx context.Context, w http.ResponseWriter, e models.Error) {
 	errorView := ErrorView{
 		Error:     e,

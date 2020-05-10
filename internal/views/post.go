@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-// PostView ...
+// PostView is the response data structure for Post
 type PostView struct {
 	prototypes.Post
 	Comments  []CommentView `json:"comments"`
@@ -14,7 +14,7 @@ type PostView struct {
 	UpdatedAt int64         `json:"updated_at"`
 }
 
-// BuildPostView ...
+// BuildPostView compose PostView from a Post
 func BuildPostView(post prototypes.Post) PostView {
 	comments := []CommentView{}
 	for _, comment := range post.Comments {
@@ -29,7 +29,7 @@ func BuildPostView(post prototypes.Post) PostView {
 	}
 }
 
-// RenderPost ...
+// RenderPost writes the PostView response to http connection
 func RenderPost(ctx context.Context, w http.ResponseWriter, post prototypes.Post) (err error) {
 	postView := BuildPostView(post)
 	err = Render(ctx, w, postView)
