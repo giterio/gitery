@@ -7,14 +7,14 @@ import (
 	"time"
 )
 
-// DataView ...
+// DataView is common response structure with specific view as data
 type DataView struct {
 	Data      interface{} `json:"data,omitempty"`
 	Ok        bool        `json:"ok"`
 	Timestamp int64       `json:"timestamp"`
 }
 
-// Render ...
+// Render compose response data structure and write the data to http(s) connection
 func Render(ctx context.Context, w http.ResponseWriter, data interface{}) (err error) {
 	dataView := DataView{
 		Ok:        true,

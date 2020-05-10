@@ -1,10 +1,12 @@
 package configs
 
 import (
+	"errors"
 	"io/ioutil"
 	"log"
 	"os"
 	"path"
+	"path/filepath"
 
 	yaml "gopkg.in/yaml.v2"
 )
@@ -13,6 +15,8 @@ import (
 type EnvType string
 
 const (
+	// Debug environment
+	Debug EnvType = "debug"
 	// Development environment
 	Development EnvType = "development"
 	// Production environment
@@ -41,12 +45,21 @@ type Option struct {
 
 // Init is using to initialize the configs
 func Init(env EnvType) (appConfig *Option, err error) {
-	// current directory of runtime: /cmd/gitery
-	dir, err := os.Getwd()
+	if env != Debug && env != Development && env != Production {
+		err = errors.New("Wrong env argument")
+		return
+	}
+	// current directory of runtime: /cmd/gitery for Debug env and /bin for Development and Production
+	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
 		log.Panicln(err)
 	}
-	file := path.Join(dir, "../..", "configs/configs.yaml")
+	// relative path to configs.yaml
+	relativePath := ""
+	if env == Debug {
+		relativePath = "../../configs"
+	}
+	file := path.Join(dir, relativePath, "configs.yaml")
 	data, err := ioutil.ReadFile(file)
 	if err != nil {
 		return

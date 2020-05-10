@@ -70,14 +70,14 @@ func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []prototyp
 	// postMap is used to assemble posts and comments efficiently
 	postMap := map[int]*prototypes.Post{}
 	// query all the posts of the user
-	postRows, err := ups.DB.QueryContext(ctx, "select id, content, created_at, updated_at from posts where user_id =$1", id)
+	postRows, err := ups.DB.QueryContext(ctx, "select id, title, content, created_at, updated_at from posts where user_id =$1", id)
 	if err != nil {
 		return
 	}
 	// fill the posts into postMap using post ID as the key
 	for postRows.Next() {
 		post := prototypes.Post{UserID: &id, Comments: []prototypes.Comment{}}
-		err = postRows.Scan(&post.ID, &post.Content, &post.CreatedAt, &post.UpdatedAt)
+		err = postRows.Scan(&post.ID, &post.Title, &post.Content, &post.CreatedAt, &post.UpdatedAt)
 		if err != nil {
 			return
 		}

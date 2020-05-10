@@ -14,7 +14,7 @@ type UserView struct {
 	UpdatedAt int64 `json:"updated_at"`
 }
 
-// BuildUserView ...
+// BuildUserView compose UserView from a User
 func BuildUserView(user prototypes.User) UserView {
 	return UserView{
 		User:      user,

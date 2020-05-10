@@ -1,0 +1,50 @@
+version: '3'
+services:
+  app:
+    container_name: app_container
+    build:
+      dockerfile: Dockerfile
+      context: .
+    ports:
+      - "80:80"
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  postgres: # docker system use service name as host name if no alias was specified.
+    container_name: postgres_container
+    image: postgres
+    environment:
+      POSTGRES_USER: gitery
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: gitery
+      PGDATA: /data/postgres
+    volumes:
+      - postgres:/data/postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  pgadmin:
+    container_name: pgadmin_container
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: name@example.com
+      PGADMIN_DEFAULT_PASSWORD: password
+    volumes:
+       - pgadmin:/root/.pgadmin
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    networks:
+      - app-network
+    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+    postgres:
+    pgadmin:

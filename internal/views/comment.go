@@ -13,7 +13,7 @@ type CommentView struct {
 	UpdatedAt int64 `json:"updated_at"`
 }
 
-// BuildCommentView ...
+// BuildCommentView compose a CommentView from a Comment
 func BuildCommentView(comment prototypes.Comment) CommentView {
 	return CommentView{
 		Comment:   comment,

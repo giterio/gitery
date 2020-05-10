@@ -29,8 +29,8 @@ func TestAuthentication(t *testing.T) {
 	mux.Handle("/", Authentication(router))
 
 	writer := httptest.NewRecorder()
-	jsonStr := strings.NewReader(`{"email":"Murphy@jwt.com","password":"fakePassword"}`)
-	request, _ := http.NewRequest(http.MethodPost, "/auth", jsonStr)
+	jsonReader := strings.NewReader(`{"email":"Murphy@jwt.com","password":"fakePassword"}`)
+	request, _ := http.NewRequest(http.MethodPost, "/auth", jsonReader)
 	request.Header.Add("Authorization", "Bearer "+fakeToken)
 	mux.ServeHTTP(writer, request)
 

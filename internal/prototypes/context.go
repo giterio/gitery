@@ -4,8 +4,8 @@ package prototypes
 type ContextKey int
 
 const (
-	// RouteKey ...
+	// RouteKey is the key of Route stored in request context
 	RouteKey ContextKey = iota
-	// UserKey ...
+	// UserKey is the key of JWT token payload stored in request context
 	UserKey
 )

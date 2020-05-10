@@ -1,12 +1,13 @@
 # configuration for project evironment
 configs/*
 !configs/configs.go
-!configs/configs.example
 
 # deployment
-deployments/*
+deploy.sh
+deployment/*
 
 # Binaries for programs and plugins
+bin/*
 *.exe
 *.exe~
 *.dll
@@ -22,6 +23,9 @@ deployments/*
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
-# VSCode debug mode
+# Debug config and cache
 .vscode
 *_bin
+
+# Exclude sample files
+!*.example

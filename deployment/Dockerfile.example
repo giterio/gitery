@@ -1,0 +1,8 @@
+FROM alpine:3.9
+ARG app_env
+ENV APP_ENV $app_env
+RUN apk --no-cache add ca-certificates
+WORKDIR /usr/bin
+COPY ./bin /go/bin
+EXPOSE 80
+ENTRYPOINT /go/bin/gitery --port 80
