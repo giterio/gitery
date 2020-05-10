@@ -3,7 +3,9 @@ package controllers
 import (
 	"encoding/json"
 	"net/http"
+	"regexp"
 	"strconv"
+	"strings"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -107,6 +109,18 @@ func (h *UserHandler) handlePost(w http.ResponseWriter, r *http.Request) (err er
 		err = models.BadRequestError(ctx, err)
 		return
 	}
+	// validate email format
+	validEmail := regexp.MustCompile(`^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$`)
+	if !validEmail.MatchString(register.Email) {
+		err = models.IllegalEmailFormatError(ctx)
+		return
+	}
+	// validate password format
+	validPwd := regexp.MustCompile(`^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=\S+$).{8,32}$`)
+	if !validPwd.MatchString(register.Password) {
+		err = models.IncorrectPasswordFormatError(ctx)
+		return
+	}
 	// generate password hash
 	hash, err := bcrypt.GenerateFromPassword([]byte(register.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -116,6 +130,7 @@ func (h *UserHandler) handlePost(w http.ResponseWriter, r *http.Request) (err er
 	user := prototypes.User{
 		Email:     register.Email,
 		HashedPwd: string(hash),
+		Nickname:  strings.Split(register.Email, "@")[0],
 	}
 	// create new user record in DB
 	err = h.Model.Create(ctx, &user)

@@ -103,8 +103,16 @@ func InvalidPasswordError(ctx context.Context, err error) Error {
 	return createError(ctx, http.StatusAccepted, 10012, description, err)
 }
 
-// PasswordTooSimpleError means the password is too simple.
-func PasswordTooSimpleError(ctx context.Context, err error) Error {
-	description := "Password too simple, at least 8 characters required."
-	return createError(ctx, http.StatusAccepted, 10013, description, err)
+// Following are logic errors
+
+// IllegalEmailFormatError means the email format is incorrect.
+func IllegalEmailFormatError(ctx context.Context) Error {
+	description := "Illegal email format"
+	return createError(ctx, http.StatusAccepted, 10013, description, nil)
+}
+
+// IncorrectPasswordFormatError means the password is too simple.
+func IncorrectPasswordFormatError(ctx context.Context) Error {
+	description := "The password is a combination of uppercase and lowercase letters and numbers with a length of 8-32"
+	return createError(ctx, http.StatusAccepted, 10013, description, nil)
 }

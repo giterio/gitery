@@ -16,6 +16,7 @@ type User struct {
 	ID        *int      `json:"id"`
 	Email     string    `json:"email"`
 	HashedPwd string    `json:"-"`
+	Nickname  string    `json:"nickname"`
 	CreatedAt time.Time `json:"-"` // reconstruct in UserView
 	UpdatedAt time.Time `json:"-"` // reconstruct in UserView
 }
