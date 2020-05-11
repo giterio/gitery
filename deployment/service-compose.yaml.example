@@ -5,8 +5,9 @@ services:
     build:
       dockerfile: Dockerfile
       context: .
-    ports:
-      - "80:80"
+    environment:
+      - VIRTUAL_HOST=api.gitery.com
+      - LETSENCRYPT_HOST=api.gitery.com
     networks:
       - app-network
     restart: unless-stopped

@@ -55,8 +55,8 @@ func (ps *PostService) Create(ctx context.Context, post *prototypes.Post) (err e
 
 // Update a post
 func (ps *PostService) Update(ctx context.Context, post *prototypes.Post) (err error) {
-	err = ps.DB.QueryRowContext(ctx, "update posts set title = $1, content = $2, updated_at = $3 where id = $4 and user_id = $5 returning updated_at",
-		post.Title, post.Content, time.Now(), post.ID, post.UserID).Scan(&post.UpdatedAt)
+	err = ps.DB.QueryRowContext(ctx, "update posts set title = $3, content = $4, updated_at = $5 where id = $1 and user_id = $2 returning updated_at",
+		post.ID, post.UserID, post.Title, post.Content, time.Now()).Scan(&post.UpdatedAt)
 	return
 }
 
