@@ -14,7 +14,7 @@ type JwtPayload struct {
 	Iat int64  `json:"iat"`           // Issued At
 	Jti int64  `json:"jti,omitempty"` // JWT ID
 	Pub struct {
-		ID    *int   `json:"user_id"`
+		ID    *int   `json:"userId"`
 		Email string `json:"email"`
 	} `json:"pub"`
 }
@@ -26,7 +26,7 @@ func TestEncode(t *testing.T) {
 		Sub: "123",
 		Exp: time.Now().Unix() + 100000,
 		Pub: struct {
-			ID    *int   `json:"user_id"`
+			ID    *int   `json:"userId"`
 			Email string `json:"email"`
 		}{
 			ID:    &id,

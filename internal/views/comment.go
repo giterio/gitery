@@ -9,8 +9,8 @@ import (
 // CommentView ...
 type CommentView struct {
 	prototypes.Comment
-	CreatedAt int64 `json:"created_at"`
-	UpdatedAt int64 `json:"updated_at"`
+	CreatedAt int64 `json:"createdAt"`
+	UpdatedAt int64 `json:"updatedAt"`
 }
 
 // BuildCommentView compose a CommentView from a Comment

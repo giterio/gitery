@@ -10,8 +10,8 @@ import (
 type PostView struct {
 	prototypes.Post
 	Comments  []CommentView `json:"comments"`
-	CreatedAt int64         `json:"created_at"`
-	UpdatedAt int64         `json:"updated_at"`
+	CreatedAt int64         `json:"createdAt"`
+	UpdatedAt int64         `json:"updatedAt"`
 }
 
 // BuildPostView compose PostView from a Post

@@ -42,7 +42,7 @@ func TestHandlePost(t *testing.T) {
 	})
 
 	writer := httptest.NewRecorder()
-	jsonStr := strings.NewReader(`{"content":"Updated post","user_id": 1}`)
+	jsonStr := strings.NewReader(`{"content":"Updated post","userId": 1}`)
 	request, _ := http.NewRequest("POST", "/post/1", jsonStr)
 	mux.ServeHTTP(writer, request)
 
@@ -55,7 +55,7 @@ func TestHandlePost(t *testing.T) {
 		t.Errorf("response body not parsable %s", err.Error())
 	}
 	postData, ok := dataView.Data.(map[string]interface{})
-	if ok && postData["content"] == "Updated post" && postData["user_id"] == 1 {
+	if ok && postData["content"] == "Updated post" && postData["userId"] == 1 {
 		t.Errorf("Cannot retrieve JSON post")
 	}
 }

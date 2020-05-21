@@ -11,7 +11,7 @@ type Post struct {
 	Title     string    `json:"title"`
 	Content   string    `json:"content"`
 	Comments  []Comment `json:"-"` // reconstruct in PostView
-	UserID    *int      `json:"user_id"`
+	UserID    *int      `json:"userId"`
 	CreatedAt time.Time `json:"-"` // reconstruct in PostView
 	UpdatedAt time.Time `json:"-"` // reconstruct in PostView
 }

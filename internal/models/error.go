@@ -12,8 +12,8 @@ import (
 
 // Error represents an error with description and trace
 type Error struct {
-	StatusCode  int               `json:"status_code"`
-	ErrorCode   int               `json:"error_code"`
+	StatusCode  int               `json:"statusCode"`
+	ErrorCode   int               `json:"errorCode"`
 	Description string            `json:"description"`
 	Trace       map[string]string `json:"trace"`
 	Timestamp   time.Time         `json:"-"`
