@@ -14,6 +14,12 @@ func (ps *FakePostService) Fetch(ctx context.Context, id int) (post prototypes.P
 	return
 }
 
+// FetchList ...
+func (ps *FakePostService) FetchList(ctx context.Context, limit int, offset int) (posts []prototypes.Post, err error) {
+	posts = []prototypes.Post{}
+	return
+}
+
 // Create ...
 func (ps *FakePostService) Create(ctx context.Context, post *prototypes.Post) (err error) {
 	return

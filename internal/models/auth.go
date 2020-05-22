@@ -21,7 +21,7 @@ type AuthService struct {
 func (as *AuthService) Login(ctx context.Context, auth prototypes.Auth) (token string, err error) {
 	user := prototypes.User{}
 	// retrieve user matched given email
-	err = as.DB.QueryRowContext(ctx, "select id, email, hashed_pwd, created_at, updated_at from users where email = $1", auth.Email).Scan(
+	err = as.DB.QueryRowContext(ctx, "SELECT id, email, hashed_pwd, created_at, updated_at FROM users WHERE email = $1", auth.Email).Scan(
 		&user.ID, &user.Email, &user.HashedPwd, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		err = IdentityNonExistError(ctx, err)
