@@ -3,7 +3,6 @@ package controllers
 import (
 	"encoding/json"
 	"net/http"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -11,6 +10,7 @@ import (
 
 	"gitery/internal/models"
 	"gitery/internal/prototypes"
+	"gitery/internal/tools/validation"
 	"gitery/internal/views"
 )
 
@@ -110,14 +110,14 @@ func (h *UserHandler) handlePost(w http.ResponseWriter, r *http.Request) (err er
 		return
 	}
 	// validate email format
-	validEmail := regexp.MustCompile(`^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$`)
-	if !validEmail.MatchString(register.Email) {
+	err = validation.ValidateEmail(register.Email)
+	if err != nil {
 		err = models.IllegalEmailFormatError(ctx)
 		return
 	}
 	// validate password format
-	validPwd := regexp.MustCompile(`^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=\S+$).{8,32}$`)
-	if !validPwd.MatchString(register.Password) {
+	err = validation.ValidatePassword(register.Password)
+	if err != nil {
 		err = models.IncorrectPasswordFormatError(ctx)
 		return
 	}
