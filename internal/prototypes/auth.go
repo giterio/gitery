@@ -12,7 +12,7 @@ type Auth struct {
 
 // JwtUserPub ...
 type JwtUserPub struct {
-	ID    *int   `json:"userId"`
+	ID    *int   `json:"userID"`
 	Email string `json:"email"`
 }
 

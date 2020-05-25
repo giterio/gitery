@@ -9,26 +9,32 @@ import (
 // PostView is the response data structure for Post
 type PostView struct {
 	prototypes.Post
-	Comments  []CommentView `json:"comments,omitempty"`
 	CreatedAt int64         `json:"createdAt"`
 	UpdatedAt int64         `json:"updatedAt"`
+	Author    *UserView     `json:"auther,omitempty"`
+	Comments  []CommentView `json:"comments,omitempty"`
 }
 
 // BuildPostView compose PostView from a Post
-func BuildPostView(post prototypes.Post) PostView {
-	comments := []CommentView{}
+func BuildPostView(post prototypes.Post) (postView PostView) {
+	postView = PostView{
+		Post:      post,
+		CreatedAt: post.CreatedAt.Unix(),
+		UpdatedAt: post.UpdatedAt.Unix(),
+	}
 	if post.Comments != nil {
+		comments := []CommentView{}
 		for _, comment := range post.Comments {
 			commentView := BuildCommentView(comment)
 			comments = append(comments, commentView)
 		}
+		postView.Comments = comments
 	}
-	return PostView{
-		Post:      post,
-		Comments:  comments,
-		CreatedAt: post.CreatedAt.Unix(),
-		UpdatedAt: post.UpdatedAt.Unix(),
+	if post.Author != nil {
+		author := BuildUserView(*post.Author)
+		postView.Author = &author
 	}
+	return
 }
 
 // RenderPost writes the PostView response to http connection

@@ -16,18 +16,25 @@ type PostService struct {
 // Fetch single post
 func (ps *PostService) Fetch(ctx context.Context, id int) (post prototypes.Post, err error) {
 	post = prototypes.Post{}
-	post.Comments = []prototypes.Comment{}
 	err = ps.DB.QueryRowContext(ctx, "SELECT id, title, content, user_id, created_at, updated_at FROM posts WHERE id = $1", id).Scan(
 		&post.ID, &post.Title, &post.Content, &post.UserID, &post.CreatedAt, &post.UpdatedAt)
 	if err != nil {
 		err = NotFoundError(ctx, err)
 		return
 	}
+	// query user information
+	us := UserService{DB: ps.DB}
+	user, err := us.Fetch(ctx, id)
+	if err != nil {
+		return
+	}
+	post.Author = &user
 	// query comments related to the post
 	rows, err := ps.DB.QueryContext(ctx, "SELECT id, content, user_id, created_at, updated_at FROM comments WHERE post_id =$1", id)
 	if err != nil {
 		return
 	}
+	post.Comments = []prototypes.Comment{}
 	// Assemble comments with post structure
 	for rows.Next() {
 		comment := prototypes.Comment{PostID: &id}
