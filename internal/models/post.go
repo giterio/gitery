@@ -55,7 +55,12 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (po
 	}
 	posts = []prototypes.Post{}
 	// query all the posts of the user
-	postRows, err := ps.DB.QueryContext(ctx, "SELECT id, title, content, user_id, created_at, updated_at FROM posts ORDER BY updated_at DESC LIMIT $1 OFFSET $2", limit, offset)
+	postRows, err := ps.DB.QueryContext(ctx,
+		`SELECT posts.id, posts.title, posts.content, posts.user_id, posts.created_at, posts.updated_at,
+		users.id AS user_id, users.email, users.nickname, users.created_at AS user_created_at, users.updated_at AS user_updated_at
+		FROM posts LEFT JOIN users ON (posts.user_id = users.id)
+		ORDER BY posts.updated_at DESC
+		LIMIT $1 OFFSET $2`, limit, offset)
 	if err != nil {
 		err = TransactionError(ctx, err)
 		return
@@ -63,8 +68,9 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (po
 
 	// fill the posts into list
 	for postRows.Next() {
-		post := prototypes.Post{Comments: []prototypes.Comment{}}
-		err = postRows.Scan(&post.ID, &post.Title, &post.Content, &post.UserID, &post.CreatedAt, &post.UpdatedAt)
+		post := prototypes.Post{Comments: []prototypes.Comment{}, Author: &prototypes.User{}}
+		err = postRows.Scan(&post.ID, &post.Title, &post.Content, &post.UserID, &post.CreatedAt, &post.UpdatedAt,
+			&post.Author.ID, &post.Author.Email, &post.Author.Nickname, &post.Author.CreatedAt, &post.Author.UpdatedAt)
 		if err != nil {
 			return
 		}
