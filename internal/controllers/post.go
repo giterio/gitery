@@ -60,7 +60,6 @@ func (h *PostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err err
 		}
 		posts, err = h.Model.FetchList(ctx, limit, offset)
 		if err != nil {
-			err = models.TransactionError(ctx, err)
 			return
 		}
 		err = views.RenderPostList(ctx, w, posts)
@@ -79,7 +78,6 @@ func (h *PostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err err
 		// fetch post from DB
 		post, err = h.Model.Fetch(ctx, id)
 		if err != nil {
-			err = models.NotFoundError(ctx, err)
 			return
 		}
 		err = views.RenderPost(ctx, w, post)
@@ -108,7 +106,6 @@ func (h *PostHandler) handlePost(w http.ResponseWriter, r *http.Request) (err er
 	post.UserID = payload.Pub.ID
 	err = h.Model.Create(ctx, &post)
 	if err != nil {
-		err = models.TransactionError(ctx, err)
 		return
 	}
 	err = views.RenderPost(ctx, w, post)
@@ -135,7 +132,6 @@ func (h *PostHandler) handlePatch(w http.ResponseWriter, r *http.Request) (err e
 	// fetch post from DB
 	post, err := h.Model.Fetch(ctx, id)
 	if err != nil {
-		err = models.NotFoundError(ctx, err)
 		return
 	}
 	// the post requested to update does not belong to current user
@@ -152,7 +148,6 @@ func (h *PostHandler) handlePatch(w http.ResponseWriter, r *http.Request) (err e
 	// update post in DB
 	err = h.Model.Update(ctx, &post)
 	if err != nil {
-		err = models.TransactionError(ctx, err)
 		return
 	}
 	err = views.RenderPost(ctx, w, post)
@@ -183,7 +178,6 @@ func (h *PostHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err 
 	// delete post from DB
 	err = h.Model.Delete(ctx, &post)
 	if err != nil {
-		err = models.NotFoundError(ctx, err)
 		return
 	}
 	views.RenderEmpty(ctx, w)

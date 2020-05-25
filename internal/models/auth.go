@@ -24,7 +24,11 @@ func (as *AuthService) Login(ctx context.Context, auth prototypes.Auth) (token s
 	err = as.DB.QueryRowContext(ctx, "SELECT id, email, hashed_pwd, created_at, updated_at FROM users WHERE email = $1", auth.Email).Scan(
 		&user.ID, &user.Email, &user.HashedPwd, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
-		err = IdentityNonExistError(ctx, err)
+		if err == sql.ErrNoRows {
+			err = IdentityNonExistError(ctx, err)
+		} else {
+			err = TransactionError(ctx, err)
+		}
 		return
 	}
 	// check if password match the hash

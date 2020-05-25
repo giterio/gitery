@@ -19,6 +19,9 @@ func (us *UserService) Fetch(ctx context.Context, id int) (user prototypes.User,
 	user = prototypes.User{}
 	err = us.DB.QueryRowContext(ctx, "SELECT id, email, hashed_pwd, nickname, created_at, updated_at FROM users WHERE id = $1", id).Scan(
 		&user.ID, &user.Email, &user.HashedPwd, &user.Nickname, &user.CreatedAt, &user.UpdatedAt)
+	if err != nil {
+		err = HandleDatabaseQueryError(ctx, err)
+	}
 	return
 }
 
@@ -27,10 +30,14 @@ func (us *UserService) Create(ctx context.Context, user *prototypes.User) (err e
 	statement := "INSERT INTO users (email, hashed_pwd, nickname) VALUES ($1, $2, $3) RETURNING id, created_at, updated_at"
 	stmt, err := us.DB.PrepareContext(ctx, statement)
 	if err != nil {
+		err = TransactionError(ctx, err)
 		return
 	}
 	defer stmt.Close()
 	err = stmt.QueryRowContext(ctx, user.Email, user.HashedPwd, user.Nickname).Scan(&user.ID, &user.CreatedAt, &user.UpdatedAt)
+	if err != nil {
+		err = HandleDatabaseQueryError(ctx, err)
+	}
 	return
 }
 
@@ -38,6 +45,9 @@ func (us *UserService) Create(ctx context.Context, user *prototypes.User) (err e
 func (us *UserService) Update(ctx context.Context, user *prototypes.User) (err error) {
 	err = us.DB.QueryRowContext(ctx, "UPDATE users set hashed_pwd = $2, nickname = $3 WHERE id = $1 RETURNING updated_at",
 		user.ID, user.HashedPwd, user.Nickname).Scan(&user.UpdatedAt)
+	if err != nil {
+		err = HandleDatabaseQueryError(ctx, err)
+	}
 	return
 }
 
@@ -47,7 +57,11 @@ func (us *UserService) Delete(ctx context.Context, auth *prototypes.Auth) (err e
 	err = us.DB.QueryRowContext(ctx, "SELECT id, email, hashed_pwd, nickname, created_at, updated_at FROM users WHERE email = $1", auth.Email).Scan(
 		&user.ID, &user.Email, &user.HashedPwd, &user.Nickname, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
-		err = IdentityNonExistError(ctx, err)
+		if err == sql.ErrNoRows {
+			err = IdentityNonExistError(ctx, err)
+		} else {
+			err = TransactionError(ctx, err)
+		}
 		return
 	}
 	// check if hash matched password
@@ -72,6 +86,7 @@ func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []prototyp
 	// query all the posts of the user
 	postRows, err := ups.DB.QueryContext(ctx, "SELECT id, title, content, created_at, updated_at FROM posts WHERE user_id =$1", id)
 	if err != nil {
+		err = TransactionError(ctx, err)
 		return
 	}
 	// fill the posts into postMap using post ID as the key
@@ -86,6 +101,7 @@ func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []prototyp
 	// query all the comments related to the posts
 	commentRows, err := ups.DB.QueryContext(ctx, "SELECT id, content, post_id, created_at, updated_at FROM comments WHERE post_id IN (SELECT id FROM posts WHERE user_id = $1)", id)
 	if err != nil {
+		err = TransactionError(ctx, err)
 		return
 	}
 	// Assemble comments with post structure
