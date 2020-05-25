@@ -83,7 +83,7 @@ func (h *CommentHandler) handlePatch(w http.ResponseWriter, r *http.Request) (er
 	// fetch comment from DB
 	comment, err := h.Model.Fetch(ctx, id)
 	if err != nil {
-		err = models.TransactionError(ctx, err)
+		err = models.NotFoundError(ctx, err)
 		return
 	}
 	// the comment requested to update does not belong to current user
@@ -131,7 +131,7 @@ func (h *CommentHandler) handleDelete(w http.ResponseWriter, r *http.Request) (e
 	// delete comment from DB
 	err = h.Model.Delete(ctx, &comment)
 	if err != nil {
-		err = models.TransactionError(ctx, err)
+		err = models.NotFoundError(ctx, err)
 		return
 	}
 	views.RenderEmpty(ctx, w)

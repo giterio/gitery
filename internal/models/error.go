@@ -85,6 +85,12 @@ func NotFoundError(ctx context.Context, err error) Error {
 	return createError(ctx, http.StatusAccepted, http.StatusNotFound, description, err)
 }
 
+// ConflictError means resource is already exist.
+func ConflictError(ctx context.Context, err error) Error {
+	description := http.StatusText(http.StatusConflict)
+	return createError(ctx, http.StatusAccepted, http.StatusConflict, description, err)
+}
+
 // TransactionError means there is something wrong on database.
 func TransactionError(ctx context.Context, err error) Error {
 	description := http.StatusText(http.StatusInternalServerError)
