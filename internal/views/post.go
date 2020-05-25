@@ -9,17 +9,19 @@ import (
 // PostView is the response data structure for Post
 type PostView struct {
 	prototypes.Post
-	Comments  []CommentView `json:"comments"`
-	CreatedAt int64         `json:"created_at"`
-	UpdatedAt int64         `json:"updated_at"`
+	Comments  []CommentView `json:"comments,omitempty"`
+	CreatedAt int64         `json:"createdAt"`
+	UpdatedAt int64         `json:"updatedAt"`
 }
 
 // BuildPostView compose PostView from a Post
 func BuildPostView(post prototypes.Post) PostView {
 	comments := []CommentView{}
-	for _, comment := range post.Comments {
-		commentView := BuildCommentView(comment)
-		comments = append(comments, commentView)
+	if post.Comments != nil {
+		for _, comment := range post.Comments {
+			commentView := BuildCommentView(comment)
+			comments = append(comments, commentView)
+		}
 	}
 	return PostView{
 		Post:      post,

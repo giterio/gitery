@@ -37,24 +37,54 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // Retrieve a post
-// GET /post/1
+// GET /post/:id or /post?limit=10&offset=0
 func (h *PostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
 	// parse post ID from URL
 	resource, _ := models.ShiftRoute(r)
-	id, err := strconv.Atoi(resource)
-	if err != nil {
-		err = models.BadRequestError(ctx, err)
+
+	switch resource {
+	// handle /post?limit=10&offset=0
+	case "":
+		// pre-declaration to avoid shadowing of variable err
+		var limit, offset int
+		var posts []prototypes.Post
+		q := r.URL.Query()
+		limit, err = strconv.Atoi(q.Get("limit"))
+		if err != nil {
+			limit = 10
+		}
+		offset, err = strconv.Atoi(q.Get("offset"))
+		if err != nil {
+			offset = 0
+		}
+		posts, err = h.Model.FetchList(ctx, limit, offset)
+		if err != nil {
+			err = models.TransactionError(ctx, err)
+			return
+		}
+		err = views.RenderPostList(ctx, w, posts)
+		return
+
+	// handle /post/:id
+	default:
+		// pre-declaration to avoid shadowing of variable err
+		var id int
+		var post prototypes.Post
+		id, err = strconv.Atoi(resource)
+		if err != nil {
+			err = models.BadRequestError(ctx, err)
+			return
+		}
+		// fetch post from DB
+		post, err = h.Model.Fetch(ctx, id)
+		if err != nil {
+			err = models.NotFoundError(ctx, err)
+			return
+		}
+		err = views.RenderPost(ctx, w, post)
 		return
 	}
-	// fetch post from DB
-	post, err := h.Model.Fetch(ctx, id)
-	if err != nil {
-		err = models.TransactionError(ctx, err)
-		return
-	}
-	err = views.RenderPost(ctx, w, post)
-	return
 }
 
 // Create a post
@@ -105,7 +135,7 @@ func (h *PostHandler) handlePatch(w http.ResponseWriter, r *http.Request) (err e
 	// fetch post from DB
 	post, err := h.Model.Fetch(ctx, id)
 	if err != nil {
-		err = models.TransactionError(ctx, err)
+		err = models.NotFoundError(ctx, err)
 		return
 	}
 	// the post requested to update does not belong to current user
@@ -153,7 +183,7 @@ func (h *PostHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err 
 	// delete post from DB
 	err = h.Model.Delete(ctx, &post)
 	if err != nil {
-		err = models.TransactionError(ctx, err)
+		err = models.NotFoundError(ctx, err)
 		return
 	}
 	views.RenderEmpty(ctx, w)

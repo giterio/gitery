@@ -3,7 +3,6 @@ package controllers
 import (
 	"encoding/json"
 	"net/http"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -11,6 +10,7 @@ import (
 
 	"gitery/internal/models"
 	"gitery/internal/prototypes"
+	"gitery/internal/tools/validation"
 	"gitery/internal/views"
 )
 
@@ -91,7 +91,7 @@ func (h *UserHandler) handleGet(w http.ResponseWriter, r *http.Request) (err err
 	// fetch user from DB
 	user, err := h.Model.Fetch(ctx, id)
 	if err != nil {
-		err = models.TransactionError(ctx, err)
+		err = models.NotFoundError(ctx, err)
 		return
 	}
 	err = views.RenderUser(ctx, w, user)
@@ -110,14 +110,14 @@ func (h *UserHandler) handlePost(w http.ResponseWriter, r *http.Request) (err er
 		return
 	}
 	// validate email format
-	validEmail := regexp.MustCompile(`^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$`)
-	if !validEmail.MatchString(register.Email) {
+	err = validation.ValidateEmail(register.Email)
+	if err != nil {
 		err = models.IllegalEmailFormatError(ctx)
 		return
 	}
 	// validate password format
-	validPwd := regexp.MustCompile(`^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=\S+$).{8,32}$`)
-	if !validPwd.MatchString(register.Password) {
+	err = validation.ValidatePassword(register.Password)
+	if err != nil {
 		err = models.IncorrectPasswordFormatError(ctx)
 		return
 	}
@@ -135,7 +135,7 @@ func (h *UserHandler) handlePost(w http.ResponseWriter, r *http.Request) (err er
 	// create new user record in DB
 	err = h.Model.Create(ctx, &user)
 	if err != nil {
-		err = models.TransactionError(ctx, err)
+		err = models.ConflictError(ctx, err)
 		return
 	}
 	err = views.RenderUser(ctx, w, user)
@@ -155,7 +155,7 @@ func (h *UserHandler) handlePatch(w http.ResponseWriter, r *http.Request) (err e
 	// fetch user from DB
 	user, err := h.Model.Fetch(ctx, *payload.Pub.ID)
 	if err != nil {
-		err = models.TransactionError(ctx, err)
+		err = models.NotFoundError(ctx, err)
 		return
 	}
 	// merge and update user info
@@ -199,7 +199,7 @@ func (h *UserHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err 
 	// delete user from DB
 	err = h.Model.Delete(ctx, &auth)
 	if err != nil {
-		err = models.TransactionError(ctx, err)
+		err = models.NotFoundError(ctx, err)
 		return
 	}
 	views.RenderEmpty(ctx, w)

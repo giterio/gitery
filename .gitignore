@@ -3,8 +3,12 @@ configs/*
 !configs/configs.go
 
 # deployment
-deploy.sh
+build.sh
 deployment/*
+!deploy.sh
+
+# Exclude sample files
+!*.example
 
 # Binaries for programs and plugins
 bin/*
@@ -26,6 +30,3 @@ bin/*
 # Debug config and cache
 .vscode
 *_bin
-
-# Exclude sample files
-!*.example

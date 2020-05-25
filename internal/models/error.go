@@ -12,8 +12,8 @@ import (
 
 // Error represents an error with description and trace
 type Error struct {
-	StatusCode  int               `json:"status_code"`
-	ErrorCode   int               `json:"error_code"`
+	StatusCode  int               `json:"statusCode"`
+	ErrorCode   int               `json:"errorCode"`
 	Description string            `json:"description"`
 	Trace       map[string]string `json:"trace"`
 	Timestamp   time.Time         `json:"-"`
@@ -83,6 +83,12 @@ func ForbiddenError(ctx context.Context, err error) Error {
 func NotFoundError(ctx context.Context, err error) Error {
 	description := http.StatusText(http.StatusNotFound)
 	return createError(ctx, http.StatusAccepted, http.StatusNotFound, description, err)
+}
+
+// ConflictError means resource is already exist.
+func ConflictError(ctx context.Context, err error) Error {
+	description := http.StatusText(http.StatusConflict)
+	return createError(ctx, http.StatusAccepted, http.StatusConflict, description, err)
 }
 
 // TransactionError means there is something wrong on database.
