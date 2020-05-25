@@ -17,14 +17,14 @@ type PostService struct {
 func (ps *PostService) Fetch(ctx context.Context, id int) (post prototypes.Post, err error) {
 	post = prototypes.Post{}
 	post.Comments = []prototypes.Comment{}
-	err = ps.DB.QueryRowContext(ctx, "select id, title, content, user_id, created_at, updated_at from posts where id = $1", id).Scan(
+	err = ps.DB.QueryRowContext(ctx, "SELECT id, title, content, user_id, created_at, updated_at FROM posts WHERE id = $1", id).Scan(
 		&post.ID, &post.Title, &post.Content, &post.UserID, &post.CreatedAt, &post.UpdatedAt)
 	if err != nil {
 		err = NotFoundError(ctx, err)
 		return
 	}
 	// query comments related to the post
-	rows, err := ps.DB.QueryContext(ctx, "select id, content, user_id, created_at, updated_at from comments where post_id =$1", id)
+	rows, err := ps.DB.QueryContext(ctx, "SELECT id, content, user_id, created_at, updated_at FROM comments WHERE post_id =$1", id)
 	if err != nil {
 		return
 	}
@@ -47,7 +47,7 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (po
 	}
 	posts = []prototypes.Post{}
 	// query all the posts of the user
-	postRows, err := ps.DB.QueryContext(ctx, "SELECT id, title, content, user_id, created_at, updated_at FROM posts LIMIT $1 OFFSET $2", limit, offset)
+	postRows, err := ps.DB.QueryContext(ctx, "SELECT id, title, content, user_id, created_at, updated_at FROM posts ORDER BY updated_at DESC LIMIT $1 OFFSET $2", limit, offset)
 	if err != nil {
 		return
 	}
@@ -66,7 +66,7 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (po
 
 // Create a new post
 func (ps *PostService) Create(ctx context.Context, post *prototypes.Post) (err error) {
-	statement := "INSERT INTO posts (title, content, user_id) VALUES ($1, $2) RETURNING id, created_at, updated_at"
+	statement := "INSERT INTO posts (title, content, user_id) VALUES ($1, $2, $3) RETURNING id, created_at, updated_at"
 	stmt, err := ps.DB.PrepareContext(ctx, statement)
 	if err != nil {
 		return
