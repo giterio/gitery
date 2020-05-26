@@ -55,12 +55,13 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (po
 	}
 	posts = []prototypes.Post{}
 	// query all the posts of the user
-	postRows, err := ps.DB.QueryContext(ctx,
-		`SELECT posts.id, posts.title, posts.content, posts.user_id, posts.created_at, posts.updated_at,
+	postRows, err := ps.DB.QueryContext(ctx, `
+		SELECT posts.id, posts.title, posts.content, posts.user_id, posts.created_at, posts.updated_at,
 		users.id AS user_id, users.email, users.nickname, users.created_at AS user_created_at, users.updated_at AS user_updated_at
 		FROM posts LEFT JOIN users ON (posts.user_id = users.id)
 		ORDER BY posts.updated_at DESC
-		LIMIT $1 OFFSET $2`, limit, offset)
+		LIMIT $1 OFFSET $2
+	`, limit, offset)
 	if err != nil {
 		err = TransactionError(ctx, err)
 		return

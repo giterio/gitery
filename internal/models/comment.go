@@ -20,7 +20,15 @@ func (cs *CommentService) Fetch(ctx context.Context, id int) (comment prototypes
 		&comment.ID, &comment.Content, &comment.UserID, &comment.PostID, &comment.CreatedAt, &comment.UpdatedAt)
 	if err != nil {
 		err = HandleDatabaseQueryError(ctx, err)
+		return
 	}
+	// query user information
+	us := UserService{DB: cs.DB}
+	user, err := us.Fetch(ctx, *comment.UserID)
+	if err != nil {
+		return
+	}
+	comment.Author = &user
 	return
 }
 

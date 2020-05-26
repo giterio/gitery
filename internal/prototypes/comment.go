@@ -13,6 +13,7 @@ type Comment struct {
 	UserID    *int      `json:"userID"`
 	CreatedAt time.Time `json:"-"` // reconstruct in CommentView
 	UpdatedAt time.Time `json:"-"` // reconstruct in CommentView
+	Author    *User     `json:"-"` // reconstruct in PostView
 }
 
 // CommentService ...

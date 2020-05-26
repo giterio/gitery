@@ -99,15 +99,21 @@ func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []prototyp
 		postMap[*post.ID] = &post
 	}
 	// query all the comments related to the posts
-	commentRows, err := ups.DB.QueryContext(ctx, "SELECT id, content, post_id, created_at, updated_at FROM comments WHERE post_id IN (SELECT id FROM posts WHERE user_id = $1)", id)
+	commentRows, err := ups.DB.QueryContext(ctx, `
+		SELECT comments.id, comments.content, comments.post_id, comments.user_id, comments.created_at, comments.updated_at,
+		users.id AS user_id, users.email, users.nickname, users.created_at AS user_created_at, users.updated_at AS user_updated_at
+		FROM comments, users
+		WHERE comments.post_id IN (SELECT id FROM posts WHERE user_id = $1) AND users.id = comments.user_id
+	`, id)
 	if err != nil {
 		err = TransactionError(ctx, err)
 		return
 	}
 	// Assemble comments with post structure
 	for commentRows.Next() {
-		comment := prototypes.Comment{UserID: &id}
-		err = commentRows.Scan(&comment.ID, &comment.Content, &comment.PostID, &comment.CreatedAt, &comment.UpdatedAt)
+		comment := prototypes.Comment{Author: &prototypes.User{}}
+		err = commentRows.Scan(&comment.ID, &comment.Content, &comment.PostID, &comment.UserID, &comment.CreatedAt, &comment.UpdatedAt,
+			&comment.Author.ID, &comment.Author.Email, &comment.Author.Nickname, &comment.Author.CreatedAt, &comment.Author.UpdatedAt)
 		if err != nil {
 			return
 		}
