@@ -33,13 +33,13 @@ func (h *AuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // handle login event
 func (h *AuthHandler) handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
-	auth := prototypes.Auth{}
-	err = json.NewDecoder(r.Body).Decode(&auth)
+	login := prototypes.Login{}
+	err = json.NewDecoder(r.Body).Decode(&login)
 	if err != nil {
 		err = models.BadRequestError(ctx, err)
 		return
 	}
-	token, user, err := h.Model.Login(ctx, auth)
+	token, user, err := h.Model.Login(ctx, login)
 	if err != nil {
 		return
 	}

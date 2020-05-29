@@ -181,19 +181,19 @@ func (h *UserHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err 
 		return
 	}
 	// retrieve auth data from request body
-	auth := prototypes.Auth{}
-	err = json.NewDecoder(r.Body).Decode(&auth)
+	login := prototypes.Login{}
+	err = json.NewDecoder(r.Body).Decode(&login)
 	if err != nil {
 		err = models.BadRequestError(ctx, err)
 		return
 	}
 	// check if user to delete match current user
-	if payload.Pub.Email != auth.Email {
+	if payload.Pub.Email != login.Email {
 		err = models.AuthorizationError(ctx, err)
 		return
 	}
 	// delete user from DB
-	err = h.Model.Delete(ctx, &auth)
+	err = h.Model.Delete(ctx, &login)
 	if err != nil {
 		return
 	}

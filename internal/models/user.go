@@ -52,9 +52,9 @@ func (us *UserService) Update(ctx context.Context, user *prototypes.User) (err e
 }
 
 // Delete a post
-func (us *UserService) Delete(ctx context.Context, auth *prototypes.Auth) (err error) {
+func (us *UserService) Delete(ctx context.Context, login *prototypes.Login) (err error) {
 	user := prototypes.User{}
-	err = us.DB.QueryRowContext(ctx, "SELECT id, email, hashed_pwd, nickname, created_at, updated_at FROM users WHERE email = $1", auth.Email).Scan(
+	err = us.DB.QueryRowContext(ctx, "SELECT id, email, hashed_pwd, nickname, created_at, updated_at FROM users WHERE email = $1", login.Email).Scan(
 		&user.ID, &user.Email, &user.HashedPwd, &user.Nickname, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -65,7 +65,7 @@ func (us *UserService) Delete(ctx context.Context, auth *prototypes.Auth) (err e
 		return
 	}
 	// check if hash matched password
-	err = bcrypt.CompareHashAndPassword([]byte(user.HashedPwd), []byte(auth.Password))
+	err = bcrypt.CompareHashAndPassword([]byte(user.HashedPwd), []byte(login.Password))
 	if err != nil {
 		err = InvalidPasswordError(ctx, err)
 		return
