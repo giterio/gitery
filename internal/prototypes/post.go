@@ -7,13 +7,16 @@ import (
 
 // Post ...
 type Post struct {
+	// Structural data
 	ID        *int      `json:"id"`
 	Title     string    `json:"title"`
 	Content   string    `json:"content"`
-	Comments  []Comment `json:"-"` // reconstruct in PostView
-	UserID    *int      `json:"userId"`
+	UserID    *int      `json:"userID"`
 	CreatedAt time.Time `json:"-"` // reconstruct in PostView
 	UpdatedAt time.Time `json:"-"` // reconstruct in PostView
+	// Linked data
+	Author   *User     `json:"-"` // reconstruct in PostView
+	Comments []Comment `json:"-"` // reconstruct in PostView
 }
 
 // PostService ...

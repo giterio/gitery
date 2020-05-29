@@ -17,7 +17,7 @@ func TestAuthentication(t *testing.T) {
 	// {
 	//   "iat": 1516239022,
 	//   "pub": {
-	//      "userId": 1,
+	//      "userID": 1,
 	//      "email": "Murphy@jwt.com"
 	//   }
 	// }

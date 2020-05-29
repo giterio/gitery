@@ -4,15 +4,15 @@ import (
 	"context"
 )
 
-// Auth ...
-type Auth struct {
+// Login ...
+type Login struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
 // JwtUserPub ...
 type JwtUserPub struct {
-	ID    *int   `json:"userId"`
+	ID    *int   `json:"userID"`
 	Email string `json:"email"`
 }
 
@@ -30,6 +30,6 @@ type JwtPayload struct {
 
 // AuthService ...
 type AuthService interface {
-	Login(ctx context.Context, auth Auth) (token string, err error)
+	Login(ctx context.Context, login Login) (token string, user User, err error)
 	Verify(ctx context.Context, token string) (payload JwtPayload, err error)
 }

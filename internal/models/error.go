@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -121,4 +122,12 @@ func IllegalEmailFormatError(ctx context.Context) Error {
 func IncorrectPasswordFormatError(ctx context.Context) Error {
 	description := "The password is a combination of uppercase and lowercase letters and numbers with a length of 8-32"
 	return createError(ctx, http.StatusAccepted, 10013, description, nil)
+}
+
+// HandleDatabaseQueryError handles DB transaction error
+func HandleDatabaseQueryError(ctx context.Context, err error) Error {
+	if err == sql.ErrNoRows {
+		return NotFoundError(ctx, err)
+	}
+	return TransactionError(ctx, err)
 }

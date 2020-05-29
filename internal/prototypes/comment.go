@@ -10,9 +10,10 @@ type Comment struct {
 	ID        *int      `json:"id"`
 	Content   string    `json:"content"`
 	PostID    *int      `json:"postId"`
-	UserID    *int      `json:"userId"`
+	UserID    *int      `json:"userID"`
 	CreatedAt time.Time `json:"-"` // reconstruct in CommentView
 	UpdatedAt time.Time `json:"-"` // reconstruct in CommentView
+	Author    *User     `json:"-"` // reconstruct in PostView
 }
 
 // CommentService ...
