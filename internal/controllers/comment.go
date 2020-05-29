@@ -58,7 +58,7 @@ func (h *CommentHandler) handlePost(w http.ResponseWriter, r *http.Request) (err
 	if err != nil {
 		return
 	}
-	err = views.RenderComment(ctx, w, &comment)
+	err = views.RenderComment(ctx, w, comment)
 	return
 }
 
@@ -100,7 +100,7 @@ func (h *CommentHandler) handlePatch(w http.ResponseWriter, r *http.Request) (er
 	if err != nil {
 		return
 	}
-	err = views.RenderComment(ctx, w, &comment)
+	err = views.RenderComment(ctx, w, comment)
 	return
 }
 

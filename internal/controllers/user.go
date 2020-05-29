@@ -93,7 +93,7 @@ func (h *UserHandler) handleGet(w http.ResponseWriter, r *http.Request) (err err
 	if err != nil {
 		return
 	}
-	err = views.RenderUser(ctx, w, &user)
+	err = views.RenderUser(ctx, w, user)
 	return
 }
 
@@ -136,7 +136,7 @@ func (h *UserHandler) handlePost(w http.ResponseWriter, r *http.Request) (err er
 	if err != nil {
 		return
 	}
-	err = views.RenderUser(ctx, w, &user)
+	err = views.RenderUser(ctx, w, user)
 	return
 }
 
@@ -166,7 +166,7 @@ func (h *UserHandler) handlePatch(w http.ResponseWriter, r *http.Request) (err e
 	if err != nil {
 		return
 	}
-	err = views.RenderUser(ctx, w, &user)
+	err = views.RenderUser(ctx, w, user)
 	return
 }
 

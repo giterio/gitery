@@ -13,11 +13,11 @@ type AuthView struct {
 }
 
 // BuildAuthView compose the login response data structure
-func BuildAuthView(token string, user *prototypes.User) (authView AuthView) {
+func BuildAuthView(token string, user prototypes.User) (authView AuthView) {
 	authView = AuthView{
 		Token: token,
 	}
-	if user != nil {
+	if user.ID != nil {
 		userView := BuildUserView(user)
 		authView.User = &userView
 	}
@@ -25,7 +25,7 @@ func BuildAuthView(token string, user *prototypes.User) (authView AuthView) {
 }
 
 // RenderAuth writes login response to http connection
-func RenderAuth(ctx context.Context, w http.ResponseWriter, token string, user *prototypes.User) (err error) {
+func RenderAuth(ctx context.Context, w http.ResponseWriter, token string, user prototypes.User) (err error) {
 	tokenView := BuildAuthView(token, user)
 	err = Render(ctx, w, tokenView)
 	return
