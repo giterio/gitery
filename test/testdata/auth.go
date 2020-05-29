@@ -16,8 +16,12 @@ type FakeAuthService struct {
 }
 
 // Login ...
-func (as *FakeAuthService) Login(ctx context.Context, auth prototypes.Auth) (token string, err error) {
+func (as *FakeAuthService) Login(ctx context.Context, auth prototypes.Auth) (token string, user prototypes.User, err error) {
 	token = as.Token
+	ID := 1001
+	user = prototypes.User{
+		ID: &ID,
+	}
 	return
 }
 

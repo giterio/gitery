@@ -80,7 +80,7 @@ func (h *PostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err err
 		if err != nil {
 			return
 		}
-		err = views.RenderPost(ctx, w, post)
+		err = views.RenderPost(ctx, w, &post)
 		return
 	}
 }
@@ -108,7 +108,7 @@ func (h *PostHandler) handlePost(w http.ResponseWriter, r *http.Request) (err er
 	if err != nil {
 		return
 	}
-	err = views.RenderPost(ctx, w, post)
+	err = views.RenderPost(ctx, w, &post)
 	return
 }
 
@@ -150,7 +150,7 @@ func (h *PostHandler) handlePatch(w http.ResponseWriter, r *http.Request) (err e
 	if err != nil {
 		return
 	}
-	err = views.RenderPost(ctx, w, post)
+	err = views.RenderPost(ctx, w, &post)
 	return
 }
 

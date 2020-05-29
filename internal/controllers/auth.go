@@ -39,10 +39,10 @@ func (h *AuthHandler) handlePost(w http.ResponseWriter, r *http.Request) (err er
 		err = models.BadRequestError(ctx, err)
 		return
 	}
-	token, err := h.Model.Login(ctx, auth)
+	token, user, err := h.Model.Login(ctx, auth)
 	if err != nil {
 		return
 	}
-	err = views.RenderAuth(ctx, w, token)
+	err = views.RenderAuth(ctx, w, token, &user)
 	return
 }

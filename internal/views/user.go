@@ -9,13 +9,13 @@ import (
 
 // UserView ...
 type UserView struct {
-	prototypes.User
+	*prototypes.User
 	CreatedAt int64 `json:"createdAt"`
 	UpdatedAt int64 `json:"updatedAt"`
 }
 
 // BuildUserView compose UserView from a User
-func BuildUserView(user prototypes.User) UserView {
+func BuildUserView(user *prototypes.User) UserView {
 	return UserView{
 		User:      user,
 		CreatedAt: user.CreatedAt.Unix(),
@@ -24,7 +24,7 @@ func BuildUserView(user prototypes.User) UserView {
 }
 
 // RenderUser ...
-func RenderUser(ctx context.Context, w http.ResponseWriter, user prototypes.User) (err error) {
+func RenderUser(ctx context.Context, w http.ResponseWriter, user *prototypes.User) (err error) {
 	userView := BuildUserView(user)
 	err = Render(ctx, w, userView)
 	return
