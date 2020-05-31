@@ -2,7 +2,6 @@ package views
 
 import (
 	"context"
-	"encoding/json"
 	"gitery/internal/prototypes"
 	"net/http"
 )
@@ -51,8 +50,6 @@ func RenderPostList(ctx context.Context, w http.ResponseWriter, posts []prototyp
 	for _, post := range posts {
 		postListView = append(postListView, BuildPostView(post))
 	}
-	json, _ := json.MarshalIndent(postListView, "", "\t\t")
-	println(string(json))
 	err = Render(ctx, w, postListView)
 	return
 }
