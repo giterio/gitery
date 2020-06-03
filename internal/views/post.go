@@ -11,7 +11,7 @@ type PostView struct {
 	prototypes.Post
 	CreatedAt int64         `json:"createdAt"`
 	UpdatedAt int64         `json:"updatedAt"`
-	Author    *UserView     `json:"auther,omitempty"`
+	Author    *UserView     `json:"author,omitempty"`
 	Comments  []CommentView `json:"comments,omitempty"`
 }
 

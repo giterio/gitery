@@ -11,7 +11,7 @@ type CommentView struct {
 	prototypes.Comment
 	CreatedAt int64     `json:"createdAt"`
 	UpdatedAt int64     `json:"updatedAt"`
-	Author    *UserView `json:"auther,omitempty"`
+	Author    *UserView `json:"author,omitempty"`
 }
 
 // BuildCommentView compose a CommentView from a Comment
