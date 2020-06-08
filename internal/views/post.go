@@ -2,7 +2,6 @@ package views
 
 import (
 	"context"
-	"encoding/json"
 	"gitery/internal/prototypes"
 	"net/http"
 )
@@ -12,7 +11,7 @@ type PostView struct {
 	prototypes.Post
 	CreatedAt int64         `json:"createdAt"`
 	UpdatedAt int64         `json:"updatedAt"`
-	Author    *UserView     `json:"auther,omitempty"`
+	Author    *UserView     `json:"author,omitempty"`
 	Comments  []CommentView `json:"comments,omitempty"`
 }
 
@@ -51,8 +50,6 @@ func RenderPostList(ctx context.Context, w http.ResponseWriter, posts []prototyp
 	for _, post := range posts {
 		postListView = append(postListView, BuildPostView(post))
 	}
-	json, _ := json.MarshalIndent(postListView, "", "\t\t")
-	println(string(json))
 	err = Render(ctx, w, postListView)
 	return
 }

@@ -48,7 +48,7 @@ func (ps *PostService) Fetch(ctx context.Context, id int) (post prototypes.Post,
 	return
 }
 
-// FetchList is to get multiple posts most recently
+// FetchList is to get latest posts
 func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (posts []prototypes.Post, err error) {
 	if limit == 0 {
 		limit = 10
@@ -56,7 +56,7 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (po
 	posts = []prototypes.Post{}
 	// query all the posts of the user
 	postRows, err := ps.DB.QueryContext(ctx, `
-		SELECT posts.id, posts.title, posts.content, posts.user_id, posts.created_at, posts.updated_at,
+		SELECT posts.id, posts.title, posts.user_id, posts.created_at, posts.updated_at,
 		users.id AS user_id, users.email, users.nickname, users.created_at AS user_created_at, users.updated_at AS user_updated_at
 		FROM posts LEFT JOIN users ON (posts.user_id = users.id)
 		ORDER BY posts.updated_at DESC
@@ -70,7 +70,7 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (po
 	// fill the posts into list
 	for postRows.Next() {
 		post := prototypes.Post{Comments: []prototypes.Comment{}, Author: &prototypes.User{}}
-		err = postRows.Scan(&post.ID, &post.Title, &post.Content, &post.UserID, &post.CreatedAt, &post.UpdatedAt,
+		err = postRows.Scan(&post.ID, &post.Title, &post.UserID, &post.CreatedAt, &post.UpdatedAt,
 			&post.Author.ID, &post.Author.Email, &post.Author.Nickname, &post.Author.CreatedAt, &post.Author.UpdatedAt)
 		if err != nil {
 			return

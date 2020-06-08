@@ -9,7 +9,7 @@ import (
 // AuthView is the data structure for login response
 type AuthView struct {
 	Token string    `json:"token"`
-	User  *UserView `json:"profile"`
+	User  *UserView `json:"user"`
 }
 
 // BuildAuthView compose the login response data structure
