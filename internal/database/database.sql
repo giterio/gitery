@@ -33,11 +33,11 @@ create table comments(
 
 create table tags(
 	id SERIAL PRIMARY KEY,
-	name TEXT NOT NULL,
-)
+	name TEXT NOT NULL
+);
 
 create table post_tag(
 	id SERIAL PRIMARY KEY,
 	post_id INTEGER REFERENCES posts(id),
-	tag_id INTEGER REFERENCES tags(id),
-)
+	tag_id INTEGER REFERENCES tags(id)
+);
