@@ -4,8 +4,8 @@ Go Web Service
 ## Deploy
 
 ### Prerequisites
-1. A Linux machine with root privileges
-2. SSH access to the remote machine
+1. An account of Linux machine with sudo privileges
+2. Authorited SSH access to the remote machine
 3. Docker installed on remote machine
 4. Docker Compose installed on remote machine
 
