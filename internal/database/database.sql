@@ -33,7 +33,7 @@ create table comments(
 
 create table tags(
 	id SERIAL PRIMARY KEY,
-	name TEXT NOT NULL
+	name VARCHAR(255) NOT NULL
 );
 
 create table post_tag(
