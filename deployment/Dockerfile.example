@@ -1,5 +1,5 @@
 ###### build locally and deploy executable file to server ########
-FROM alpine:latest
+FROM alpine:3.12
 ARG app_env
 ENV APP_ENV $app_env
 RUN apk --no-cache add ca-certificates

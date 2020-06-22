@@ -1,5 +1,5 @@
 # gitery
-Go Web Service
+Gitery Web Service
 
 ## Deploy
 
