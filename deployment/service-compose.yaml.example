@@ -6,8 +6,8 @@ services:
       dockerfile: Dockerfile
       context: .
     environment:
-      - VIRTUAL_HOST=api.gitery.com
-      - LETSENCRYPT_HOST=api.gitery.com
+      - VIRTUAL_HOST=api.example.com
+      - LETSENCRYPT_HOST=api.example.com
     networks:
       - app-network
     restart: unless-stopped
