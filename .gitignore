@@ -8,7 +8,7 @@ deployment/*
 !deploy.sh
 
 # Exclude sample files
-!*.example
+!*.sample
 
 # Binaries for programs and plugins
 bin/*
