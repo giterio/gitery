@@ -10,9 +10,8 @@ Gitery Web Service
 4. Docker Compose installed on remote machine
 
 ### On the local machine
-1. Remove the `.example` extension of `*.example` files in `/deployment` and `/configs`, setup with your own configuration.
-2. Setup `build.sh` with your remote server SSH information.
-3. run `sh build.sh` to make a production build and upload `/deployment` and `/bin` to remote server via ssh connection.
+1. Remove the `.sample` extension of `*.sample` files in `/deployment`, `/configs` and root directory, setup with your own configuration.
+2. Run `sh build.sh` to make a production build and upload `/deployment` and `/bin` to remote server via ssh connection.
 
 ### Use SSH to get a bash shell of remote machine
 1. `cd ~/gitery`
