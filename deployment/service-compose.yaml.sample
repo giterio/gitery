@@ -8,6 +8,8 @@ services:
     environment:
       - VIRTUAL_HOST=api.example.com
       - LETSENCRYPT_HOST=api.example.com
+    ports:
+      - "3000:80"
     networks:
       - app-network
     restart: unless-stopped
