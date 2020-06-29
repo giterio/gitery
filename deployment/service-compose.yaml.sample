@@ -41,9 +41,9 @@ services:
 
 networks:
   app-network:
-    driver: bridge
+    external:
+      name: nginx-proxy-network
 
 volumes:
-    app:
     postgres:
     pgadmin:
