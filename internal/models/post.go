@@ -13,8 +13,19 @@ type PostService struct {
 	DB *sql.DB
 }
 
-// Fetch single post
+// Fetch ...
 func (ps *PostService) Fetch(ctx context.Context, id int) (post prototypes.Post, err error) {
+	post = prototypes.Post{}
+	err = ps.DB.QueryRowContext(ctx, "SELECT id, title, content, user_id, created_at, updated_at FROM posts WHERE id = $1", id).Scan(
+		&post.ID, &post.Title, &post.Content, &post.UserID, &post.CreatedAt, &post.UpdatedAt)
+	if err != nil {
+		err = HandleDatabaseQueryError(ctx, err)
+	}
+	return
+}
+
+// FetchDetail is to fetch single post detail
+func (ps *PostService) FetchDetail(ctx context.Context, id int) (post prototypes.Post, err error) {
 	txn, err := ps.DB.Begin()
 	if err != nil {
 		err = ServerError(ctx, err)
@@ -46,6 +57,8 @@ func (ps *PostService) Fetch(ctx context.Context, id int) (post prototypes.Post,
 		err = TransactionError(ctx, err)
 		return
 	}
+	defer tagRows.Close()
+
 	post.Tags = []prototypes.Tag{}
 	// Assemble tags with post structure
 	for tagRows.Next() {
@@ -63,6 +76,8 @@ func (ps *PostService) Fetch(ctx context.Context, id int) (post prototypes.Post,
 		err = TransactionError(ctx, err)
 		return
 	}
+	defer commentRows.Close()
+
 	post.Comments = []prototypes.Comment{}
 	// Assemble comments with post structure
 	for commentRows.Next() {
@@ -99,6 +114,7 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (po
 		err = TransactionError(ctx, err)
 		return
 	}
+	defer postRows.Close()
 
 	// fill the posts into list
 	for postRows.Next() {

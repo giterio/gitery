@@ -35,6 +35,13 @@ func (h *TagHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // POST /tag/
 func (h *TagHandler) handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
+
+	payload, ok := ctx.Value(prototypes.UserKey).(prototypes.JwtPayload)
+	if !ok {
+		err = models.AuthorizationError(ctx, err)
+		return
+	}
+
 	param := struct {
 		TagName string `json:"tagName"`
 		PostID  int    `json:"postID"`
@@ -44,8 +51,9 @@ func (h *TagHandler) handlePost(w http.ResponseWriter, r *http.Request) (err err
 		err = models.BadRequestError(ctx, err)
 		return
 	}
-	// create new comment record in DB
-	tag, err := h.Model.Assign(ctx, param.PostID, param.TagName)
+
+	// assign tag to post in DB
+	tag, err := h.Model.Assign(ctx, *payload.Pub.ID, param.PostID, param.TagName)
 	if err != nil {
 		return
 	}
@@ -56,5 +64,29 @@ func (h *TagHandler) handlePost(w http.ResponseWriter, r *http.Request) (err err
 // Delete a comment
 // DELETE /comment/1
 func (h *TagHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
+	ctx := r.Context()
+
+	payload, ok := ctx.Value(prototypes.UserKey).(prototypes.JwtPayload)
+	if !ok {
+		err = models.AuthorizationError(ctx, err)
+		return
+	}
+
+	param := struct {
+		TagID  int `json:"tagID"`
+		PostID int `json:"postID"`
+	}{}
+	err = json.NewDecoder(r.Body).Decode(&param)
+	if err != nil {
+		err = models.BadRequestError(ctx, err)
+		return
+	}
+
+	err = h.Model.Remove(ctx, *payload.Pub.ID, param.PostID, param.TagID)
+	if err != nil {
+		return
+	}
+
+	views.RenderEmpty(ctx, w)
 	return
 }

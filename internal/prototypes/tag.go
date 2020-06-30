@@ -10,6 +10,6 @@ type Tag struct {
 
 // TagService ...
 type TagService interface {
-	Assign(ctx context.Context, postID int, tagName string) (tag Tag, err error)
-	Remove(ctx context.Context, postID int, tagID int) (err error)
+	Assign(ctx context.Context, userID int, postID int, tagName string) (tag Tag, err error)
+	Remove(ctx context.Context, userID int, postID int, tagID int) (err error)
 }

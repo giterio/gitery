@@ -94,6 +94,8 @@ func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []prototyp
 		err = TransactionError(ctx, err)
 		return
 	}
+	defer postRows.Close()
+
 	// fill the posts into postMap using post ID as the key
 	for postRows.Next() {
 		post := prototypes.Post{UserID: &id, Comments: []prototypes.Comment{}}
@@ -114,6 +116,8 @@ func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []prototyp
 		err = TransactionError(ctx, err)
 		return
 	}
+	defer commentRows.Close()
+
 	// Assemble comments with post structure
 	for commentRows.Next() {
 		comment := prototypes.Comment{Author: &prototypes.User{}}

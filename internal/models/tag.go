@@ -14,7 +14,7 @@ type TagService struct {
 }
 
 // Assign ...
-func (ts *TagService) Assign(ctx context.Context, postID int, tagName string) (tag prototypes.Tag, err error) {
+func (ts *TagService) Assign(ctx context.Context, userID int, postID int, tagName string) (tag prototypes.Tag, err error) {
 	txn, err := ts.DB.Begin()
 	if err != nil {
 		err = ServerError(ctx, err)
@@ -26,6 +26,11 @@ func (ts *TagService) Assign(ctx context.Context, postID int, tagName string) (t
 		&post.ID, &post.Title, &post.Content, &post.UserID, &post.CreatedAt, &post.UpdatedAt)
 	if err != nil {
 		err = HandleDatabaseQueryError(ctx, err)
+		return
+	}
+
+	if *post.UserID != userID {
+		err = ForbiddenError(ctx, nil)
 		return
 	}
 
@@ -70,9 +75,36 @@ func (ts *TagService) Assign(ctx context.Context, postID int, tagName string) (t
 }
 
 // Remove ...
-func (ts *TagService) Remove(ctx context.Context, postID int, tagID int) (err error) {
-	_, err = ts.DB.ExecContext(ctx, "DELETE FROM post_tag WHERE post_id = $1 AND tag_id = $2", postID, tagID)
+func (ts *TagService) Remove(ctx context.Context, userID int, postID int, tagID int) (err error) {
+	txn, err := ts.DB.Begin()
 	if err != nil {
+		err = ServerError(ctx, err)
+		return
+	}
+
+	post := prototypes.Post{}
+	err = txn.QueryRowContext(ctx, "SELECT id, title, content, user_id, created_at, updated_at FROM posts WHERE id = $1", postID).Scan(
+		&post.ID, &post.Title, &post.Content, &post.UserID, &post.CreatedAt, &post.UpdatedAt)
+	if err != nil {
+		err = HandleDatabaseQueryError(ctx, err)
+		return
+	}
+
+	if *post.UserID != userID {
+		err = ForbiddenError(ctx, nil)
+		return
+	}
+
+	_, err = txn.ExecContext(ctx, "DELETE FROM post_tag WHERE post_id = $1 AND tag_id = $2", postID, tagID)
+	if err != nil {
+		if rollbackErr := txn.Rollback(); rollbackErr != nil {
+			log.Fatalf("update drivers: unable to rollback: %v", rollbackErr)
+		}
+		err = TransactionError(ctx, err)
+		return
+	}
+
+	if err = txn.Commit(); err != nil {
 		err = TransactionError(ctx, err)
 	}
 	return

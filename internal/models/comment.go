@@ -13,22 +13,46 @@ type CommentService struct {
 	DB *sql.DB
 }
 
-// Fetch single comment
+// Fetch ...
 func (cs *CommentService) Fetch(ctx context.Context, id int) (comment prototypes.Comment, err error) {
 	comment = prototypes.Comment{}
 	err = cs.DB.QueryRowContext(ctx, "SELECT id, content, user_id, post_id, created_at, updated_at FROM comments WHERE id = $1", id).Scan(
 		&comment.ID, &comment.Content, &comment.UserID, &comment.PostID, &comment.CreatedAt, &comment.UpdatedAt)
 	if err != nil {
 		err = HandleDatabaseQueryError(ctx, err)
+	}
+	return
+}
+
+// FetchDetail is to fetch single comment detail
+func (cs *CommentService) FetchDetail(ctx context.Context, id int) (comment prototypes.Comment, err error) {
+	txn, err := cs.DB.Begin()
+	if err != nil {
+		err = ServerError(ctx, err)
 		return
 	}
-	// query user information
-	us := UserService{DB: cs.DB}
-	user, err := us.Fetch(ctx, *comment.UserID)
+
+	comment = prototypes.Comment{}
+	err = txn.QueryRowContext(ctx, "SELECT id, content, user_id, post_id, created_at, updated_at FROM comments WHERE id = $1", id).Scan(
+		&comment.ID, &comment.Content, &comment.UserID, &comment.PostID, &comment.CreatedAt, &comment.UpdatedAt)
 	if err != nil {
+		err = HandleDatabaseQueryError(ctx, err)
+		return
+	}
+
+	// query user information
+	user := prototypes.User{}
+	err = txn.QueryRowContext(ctx, "SELECT id, email, hashed_pwd, nickname, created_at, updated_at FROM users WHERE id = $1", *comment.UserID).Scan(
+		&user.ID, &user.Email, &user.HashedPwd, &user.Nickname, &user.CreatedAt, &user.UpdatedAt)
+	if err != nil {
+		err = HandleDatabaseQueryError(ctx, err)
 		return
 	}
 	comment.Author = &user
+
+	if err = txn.Commit(); err != nil {
+		err = TransactionError(ctx, err)
+	}
 	return
 }
 

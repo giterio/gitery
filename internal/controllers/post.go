@@ -76,7 +76,7 @@ func (h *PostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err err
 			return
 		}
 		// fetch post from DB
-		post, err = h.Model.Fetch(ctx, id)
+		post, err = h.Model.FetchDetail(ctx, id)
 		if err != nil {
 			return
 		}
