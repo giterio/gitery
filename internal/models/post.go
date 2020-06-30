@@ -40,18 +40,36 @@ func (ps *PostService) Fetch(ctx context.Context, id int) (post prototypes.Post,
 	}
 	post.Author = &user
 
-	// query comments related to the post
-	rows, err := txn.QueryContext(ctx, "SELECT id, content, user_id, created_at, updated_at FROM comments WHERE post_id =$1", id)
+	// query tags related to the post
+	tagRows, err := txn.QueryContext(ctx, "SELECT id, name FROM tags WHERE id IN (SELECT tag_id FROM post_tag WHERE post_id = $1)", id)
 	if err != nil {
-		err = HandleDatabaseQueryError(ctx, err)
+		err = TransactionError(ctx, err)
+		return
+	}
+	post.Tags = []prototypes.Tag{}
+	// Assemble tags with post structure
+	for tagRows.Next() {
+		tag := prototypes.Tag{}
+		if err = tagRows.Scan(&tag.ID, &tag.Name); err != nil {
+			err = TransactionError(ctx, err)
+			return
+		}
+		post.Tags = append(post.Tags, tag)
+	}
+
+	// query comments related to the post
+	commentRows, err := txn.QueryContext(ctx, "SELECT id, content, user_id, created_at, updated_at FROM comments WHERE post_id =$1", id)
+	if err != nil {
+		err = TransactionError(ctx, err)
 		return
 	}
 	post.Comments = []prototypes.Comment{}
 	// Assemble comments with post structure
-	for rows.Next() {
+	for commentRows.Next() {
 		comment := prototypes.Comment{PostID: &id}
-		err = rows.Scan(&comment.ID, &comment.Content, &comment.UserID, &comment.CreatedAt, &comment.UpdatedAt)
+		err = commentRows.Scan(&comment.ID, &comment.Content, &comment.UserID, &comment.CreatedAt, &comment.UpdatedAt)
 		if err != nil {
+			err = TransactionError(ctx, err)
 			return
 		}
 		post.Comments = append(post.Comments, comment)

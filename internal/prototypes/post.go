@@ -16,7 +16,7 @@ type Post struct {
 	UpdatedAt time.Time `json:"-"` // reconstruct in PostView
 	// Linked data
 	Author   *User     `json:"-"` // reconstruct in PostView
-	Tags     []Tag     `json:"-"`
+	Tags     []Tag     `json:"tags,omitempty"`
 	Comments []Comment `json:"-"` // reconstruct in PostView
 }
 
