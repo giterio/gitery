@@ -3,7 +3,6 @@ package models
 import (
 	"context"
 	"database/sql"
-	"log"
 	"time"
 
 	"gitery/internal/prototypes"
@@ -18,42 +17,35 @@ type PostService struct {
 func (ps *PostService) Fetch(ctx context.Context, id int) (post prototypes.Post, err error) {
 	txn, err := ps.DB.Begin()
 	if err != nil {
-		log.Fatal(err)
+		err = ServerError(ctx, err)
 		return
 	}
 
+	// query post data
 	post = prototypes.Post{}
 	err = txn.QueryRowContext(ctx, "SELECT id, title, content, user_id, created_at, updated_at FROM posts WHERE id = $1", id).Scan(
 		&post.ID, &post.Title, &post.Content, &post.UserID, &post.CreatedAt, &post.UpdatedAt)
 	if err != nil {
-		if rollbackErr := txn.Rollback(); rollbackErr != nil {
-			log.Fatalf("update drivers: unable to rollback: %v", rollbackErr)
-		}
 		err = HandleDatabaseQueryError(ctx, err)
 		return
 	}
+
 	// query user information
 	user := prototypes.User{}
 	err = txn.QueryRowContext(ctx, "SELECT id, email, hashed_pwd, nickname, created_at, updated_at FROM users WHERE id = $1", *post.UserID).Scan(
 		&user.ID, &user.Email, &user.HashedPwd, &user.Nickname, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
-		if rollbackErr := txn.Rollback(); rollbackErr != nil {
-			log.Fatalf("update drivers: unable to rollback: %v", rollbackErr)
-		}
 		err = HandleDatabaseQueryError(ctx, err)
 		return
 	}
 	post.Author = &user
+
 	// query comments related to the post
 	rows, err := txn.QueryContext(ctx, "SELECT id, content, user_id, created_at, updated_at FROM comments WHERE post_id =$1", id)
 	if err != nil {
-		if rollbackErr := txn.Rollback(); rollbackErr != nil {
-			log.Fatalf("update drivers: unable to rollback: %v", rollbackErr)
-		}
 		err = HandleDatabaseQueryError(ctx, err)
 		return
 	}
-
 	post.Comments = []prototypes.Comment{}
 	// Assemble comments with post structure
 	for rows.Next() {
@@ -67,9 +59,7 @@ func (ps *PostService) Fetch(ctx context.Context, id int) (post prototypes.Post,
 
 	if err = txn.Commit(); err != nil {
 		err = TransactionError(ctx, err)
-		return
 	}
-
 	return
 }
 
