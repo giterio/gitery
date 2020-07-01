@@ -1,7 +1,7 @@
 # gitery
 Gitery Web Service
 
-## Deploy
+## Deploy direction
 
 ### Prerequisites
 1. An account of Linux machine with sudo privileges
@@ -16,3 +16,11 @@ Gitery Web Service
 ### Use SSH to get a bash shell of remote machine
 1. `cd ~/gitery`
 2. run `sh deploy.sh` to start the service on a Nginx server
+
+### Setup the database on remote server
+1. Suppose the remote server IP address is `xxx.xxx.xxx.xxx`, please visit `xxx.xxx.xxx.xxx:5050` in your browser.
+2. Login the pgAdmin 4 (PostgreSQL GUI) with the account infomation configured in `/deployment/service-compose.yaml`.
+3. Setup postgreSQL server with the configuration infomation in `/deployment/service-compose.yaml`. Please refer to [pgAdmin 4 document](https://www.pgadmin.org/) if you have any problem.
+4. Initialize the database with the SQL clause in `/internal/database/database.sql`.
+
+#### After finishing all the steps mentioned above, the gitery service should be ready then.
