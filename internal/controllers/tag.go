@@ -42,6 +42,7 @@ func (h *TagHandler) handlePost(w http.ResponseWriter, r *http.Request) (err err
 		return
 	}
 
+	// struct to receive param
 	param := struct {
 		TagName string `json:"tagName"`
 		PostID  int    `json:"postID"`
@@ -72,6 +73,7 @@ func (h *TagHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err e
 		return
 	}
 
+	// struct to receive param
 	param := struct {
 		TagID  int `json:"tagID"`
 		PostID int `json:"postID"`
@@ -82,6 +84,7 @@ func (h *TagHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err e
 		return
 	}
 
+	// remove tag of post in DB
 	err = h.Model.Remove(ctx, *payload.Pub.ID, param.PostID, param.TagID)
 	if err != nil {
 		return

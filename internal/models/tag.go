@@ -13,7 +13,7 @@ type TagService struct {
 	DB *sql.DB
 }
 
-// Assign ...
+// Assign is to add tag for post
 func (ts *TagService) Assign(ctx context.Context, userID int, postID int, tagName string) (tag prototypes.Tag, err error) {
 	txn, err := ts.DB.Begin()
 	if err != nil {
@@ -74,7 +74,7 @@ func (ts *TagService) Assign(ctx context.Context, userID int, postID int, tagNam
 	return
 }
 
-// Remove ...
+// Remove is to remove tag from post
 func (ts *TagService) Remove(ctx context.Context, userID int, postID int, tagID int) (err error) {
 	txn, err := ts.DB.Begin()
 	if err != nil {
@@ -82,15 +82,13 @@ func (ts *TagService) Remove(ctx context.Context, userID int, postID int, tagID 
 		return
 	}
 
-	post := prototypes.Post{}
-	err = txn.QueryRowContext(ctx, "SELECT id, title, content, user_id, created_at, updated_at FROM posts WHERE id = $1", postID).Scan(
-		&post.ID, &post.Title, &post.Content, &post.UserID, &post.CreatedAt, &post.UpdatedAt)
+	// check if user is author of the post
+	var isAuthor bool
+	err = txn.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM posts WHERE id = $1 AND user_id = $2)", postID, userID).Scan(&isAuthor)
 	if err != nil {
 		err = HandleDatabaseQueryError(ctx, err)
 		return
-	}
-
-	if *post.UserID != userID {
+	} else if !isAuthor {
 		err = ForbiddenError(ctx, nil)
 		return
 	}

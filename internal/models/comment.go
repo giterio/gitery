@@ -32,6 +32,7 @@ func (cs *CommentService) FetchDetail(ctx context.Context, id int) (comment prot
 		return
 	}
 
+	// query comment from DB
 	comment = prototypes.Comment{}
 	err = txn.QueryRowContext(ctx, "SELECT id, content, user_id, post_id, created_at, updated_at FROM comments WHERE id = $1", id).Scan(
 		&comment.ID, &comment.Content, &comment.UserID, &comment.PostID, &comment.CreatedAt, &comment.UpdatedAt)
