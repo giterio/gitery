@@ -124,7 +124,7 @@ func IncorrectPasswordFormatError(ctx context.Context) Error {
 	return createError(ctx, http.StatusAccepted, 10013, description, nil)
 }
 
-// HandleDatabaseQueryError handles DB transaction error
+// HandleDatabaseQueryError handles DB transaction error of QueryRow
 func HandleDatabaseQueryError(ctx context.Context, err error) Error {
 	if err == sql.ErrNoRows {
 		return NotFoundError(ctx, err)

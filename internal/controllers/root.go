@@ -13,6 +13,7 @@ type RootHandler struct {
 	UserHandler    *UserHandler
 	PostHandler    *PostHandler
 	CommentHandler *CommentHandler
+	TagHandler     *TagHandler
 }
 
 func (h *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -29,6 +30,9 @@ func (h *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	case "comment":
 		h.CommentHandler.ServeHTTP(w, r)
+		return
+	case "tag":
+		h.TagHandler.ServeHTTP(w, r)
 		return
 	default:
 		ctx := r.Context()

@@ -48,6 +48,7 @@ func main() {
 		},
 		PostHandler:    &controllers.PostHandler{Model: &models.PostService{DB: db}},
 		CommentHandler: &controllers.CommentHandler{Model: &models.CommentService{DB: db}},
+		TagHandler:     &controllers.TagHandler{Model: &models.TagService{DB: db}},
 	}
 	// config the server
 	server := http.Server{

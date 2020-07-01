@@ -81,25 +81,56 @@ type UserPostService struct {
 
 // Fetch user's all posts
 func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []prototypes.Post, err error) {
+	txn, err := ups.DB.Begin()
+	if err != nil {
+		err = ServerError(ctx, err)
+		return
+	}
 	// postMap is used to assemble posts and comments efficiently
 	postMap := map[int]*prototypes.Post{}
 	// query all the posts of the user
-	postRows, err := ups.DB.QueryContext(ctx, "SELECT id, title, content, created_at, updated_at FROM posts WHERE user_id =$1", id)
+	postRows, err := txn.QueryContext(ctx, "SELECT id, title, content, created_at, updated_at FROM posts WHERE user_id =$1", id)
 	if err != nil {
 		err = TransactionError(ctx, err)
 		return
 	}
+	defer postRows.Close()
+
 	// fill the posts into postMap using post ID as the key
 	for postRows.Next() {
-		post := prototypes.Post{UserID: &id, Comments: []prototypes.Comment{}}
+		post := prototypes.Post{UserID: &id, Comments: []prototypes.Comment{}, Tags: []prototypes.Tag{}}
 		err = postRows.Scan(&post.ID, &post.Title, &post.Content, &post.CreatedAt, &post.UpdatedAt)
 		if err != nil {
 			return
 		}
 		postMap[*post.ID] = &post
 	}
+
+	// query all the tags related to the posts
+	tagRows, err := txn.QueryContext(ctx, `
+		SELECT tags.id, tags.name, post_tag.post_id
+		FROM tags INNER JOIN post_tag
+		ON tags.id = post_tag.tag_id AND post_tag.post_id IN (SELECT id FROM posts WHERE user_id =$1)
+	`, id)
+	if err != nil {
+		err = TransactionError(ctx, err)
+		return
+	}
+	defer tagRows.Close()
+
+	for tagRows.Next() {
+		var postID int
+		tag := prototypes.Tag{}
+		err = tagRows.Scan(&tag.ID, &tag.Name, &postID)
+		if err != nil {
+			return
+		}
+		post := postMap[postID]
+		post.Tags = append(post.Tags, tag)
+	}
+
 	// query all the comments related to the posts
-	commentRows, err := ups.DB.QueryContext(ctx, `
+	commentRows, err := txn.QueryContext(ctx, `
 		SELECT comments.id, comments.content, comments.post_id, comments.user_id, comments.created_at, comments.updated_at,
 		users.id AS user_id, users.email, users.nickname, users.created_at AS user_created_at, users.updated_at AS user_updated_at
 		FROM comments, users
@@ -109,6 +140,8 @@ func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []prototyp
 		err = TransactionError(ctx, err)
 		return
 	}
+	defer commentRows.Close()
+
 	// Assemble comments with post structure
 	for commentRows.Next() {
 		comment := prototypes.Comment{Author: &prototypes.User{}}
@@ -120,10 +153,15 @@ func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []prototyp
 		post := postMap[*comment.PostID]
 		post.Comments = append(post.Comments, comment)
 	}
+
 	// convert postMap to post list
 	posts = []prototypes.Post{}
 	for _, post := range postMap {
 		posts = append(posts, *post)
+	}
+
+	if err = txn.Commit(); err != nil {
+		err = TransactionError(ctx, err)
 	}
 	return
 }

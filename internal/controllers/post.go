@@ -76,7 +76,7 @@ func (h *PostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err err
 			return
 		}
 		// fetch post from DB
-		post, err = h.Model.Fetch(ctx, id)
+		post, err = h.Model.FetchDetail(ctx, id)
 		if err != nil {
 			return
 		}
@@ -113,7 +113,7 @@ func (h *PostHandler) handlePost(w http.ResponseWriter, r *http.Request) (err er
 }
 
 // Update a post
-// PUT /post/1
+// PATCH /post/1
 func (h *PostHandler) handlePatch(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
 	// Check user auth

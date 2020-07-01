@@ -13,37 +13,85 @@ type PostService struct {
 	DB *sql.DB
 }
 
-// Fetch single post
+// Fetch ...
 func (ps *PostService) Fetch(ctx context.Context, id int) (post prototypes.Post, err error) {
 	post = prototypes.Post{}
 	err = ps.DB.QueryRowContext(ctx, "SELECT id, title, content, user_id, created_at, updated_at FROM posts WHERE id = $1", id).Scan(
 		&post.ID, &post.Title, &post.Content, &post.UserID, &post.CreatedAt, &post.UpdatedAt)
 	if err != nil {
 		err = HandleDatabaseQueryError(ctx, err)
+	}
+	return
+}
+
+// FetchDetail is to fetch single post detail
+func (ps *PostService) FetchDetail(ctx context.Context, id int) (post prototypes.Post, err error) {
+	txn, err := ps.DB.Begin()
+	if err != nil {
+		err = ServerError(ctx, err)
 		return
 	}
-	// query user information
-	us := UserService{DB: ps.DB}
-	user, err := us.Fetch(ctx, *post.UserID)
+
+	// query post data
+	post = prototypes.Post{}
+	err = txn.QueryRowContext(ctx, "SELECT id, title, content, user_id, created_at, updated_at FROM posts WHERE id = $1", id).Scan(
+		&post.ID, &post.Title, &post.Content, &post.UserID, &post.CreatedAt, &post.UpdatedAt)
 	if err != nil {
+		err = HandleDatabaseQueryError(ctx, err)
+		return
+	}
+
+	// query user information
+	user := prototypes.User{}
+	err = txn.QueryRowContext(ctx, "SELECT id, email, hashed_pwd, nickname, created_at, updated_at FROM users WHERE id = $1", *post.UserID).Scan(
+		&user.ID, &user.Email, &user.HashedPwd, &user.Nickname, &user.CreatedAt, &user.UpdatedAt)
+	if err != nil {
+		err = HandleDatabaseQueryError(ctx, err)
 		return
 	}
 	post.Author = &user
-	// query comments related to the post
-	rows, err := ps.DB.QueryContext(ctx, "SELECT id, content, user_id, created_at, updated_at FROM comments WHERE post_id =$1", id)
+
+	// query tags related to the post
+	tagRows, err := txn.QueryContext(ctx, "SELECT id, name FROM tags WHERE id IN (SELECT tag_id FROM post_tag WHERE post_id = $1)", id)
 	if err != nil {
 		err = TransactionError(ctx, err)
 		return
 	}
+	defer tagRows.Close()
+
+	post.Tags = []prototypes.Tag{}
+	// Assemble tags with post structure
+	for tagRows.Next() {
+		tag := prototypes.Tag{}
+		if err = tagRows.Scan(&tag.ID, &tag.Name); err != nil {
+			err = TransactionError(ctx, err)
+			return
+		}
+		post.Tags = append(post.Tags, tag)
+	}
+
+	// query comments related to the post
+	commentRows, err := txn.QueryContext(ctx, "SELECT id, content, user_id, created_at, updated_at FROM comments WHERE post_id =$1", id)
+	if err != nil {
+		err = TransactionError(ctx, err)
+		return
+	}
+	defer commentRows.Close()
+
 	post.Comments = []prototypes.Comment{}
 	// Assemble comments with post structure
-	for rows.Next() {
+	for commentRows.Next() {
 		comment := prototypes.Comment{PostID: &id}
-		err = rows.Scan(&comment.ID, &comment.Content, &comment.UserID, &comment.CreatedAt, &comment.UpdatedAt)
+		err = commentRows.Scan(&comment.ID, &comment.Content, &comment.UserID, &comment.CreatedAt, &comment.UpdatedAt)
 		if err != nil {
+			err = TransactionError(ctx, err)
 			return
 		}
 		post.Comments = append(post.Comments, comment)
+	}
+
+	if err = txn.Commit(); err != nil {
+		err = TransactionError(ctx, err)
 	}
 	return
 }
@@ -53,9 +101,18 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (po
 	if limit == 0 {
 		limit = 10
 	}
-	posts = []prototypes.Post{}
+
+	txn, err := ps.DB.Begin()
+	if err != nil {
+		err = ServerError(ctx, err)
+		return
+	}
+
+	// postMap is used to assemble posts and comments efficiently
+	postMap := map[int]*prototypes.Post{}
+
 	// query all the posts of the user
-	postRows, err := ps.DB.QueryContext(ctx, `
+	postRows, err := txn.QueryContext(ctx, `
 		SELECT posts.id, posts.title, posts.user_id, posts.created_at, posts.updated_at,
 		users.id AS user_id, users.email, users.nickname, users.created_at AS user_created_at, users.updated_at AS user_updated_at
 		FROM posts LEFT JOIN users ON (posts.user_id = users.id)
@@ -66,16 +123,50 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (po
 		err = TransactionError(ctx, err)
 		return
 	}
+	defer postRows.Close()
 
 	// fill the posts into list
 	for postRows.Next() {
-		post := prototypes.Post{Comments: []prototypes.Comment{}, Author: &prototypes.User{}}
+		post := prototypes.Post{Comments: []prototypes.Comment{}, Tags: []prototypes.Tag{}, Author: &prototypes.User{}}
 		err = postRows.Scan(&post.ID, &post.Title, &post.UserID, &post.CreatedAt, &post.UpdatedAt,
 			&post.Author.ID, &post.Author.Email, &post.Author.Nickname, &post.Author.CreatedAt, &post.Author.UpdatedAt)
 		if err != nil {
 			return
 		}
-		posts = append(posts, post)
+		postMap[*post.ID] = &post
+	}
+
+	// query all the tags related to the posts
+	tagRows, err := txn.QueryContext(ctx, `
+		SELECT tags.id, tags.name, post_tag.post_id
+		FROM tags INNER JOIN post_tag
+		ON tags.id = post_tag.tag_id AND post_tag.post_id IN (SELECT id FROM posts ORDER BY posts.updated_at DESC LIMIT $1 OFFSET $2)
+	`, limit, offset)
+	if err != nil {
+		err = TransactionError(ctx, err)
+		return
+	}
+	defer tagRows.Close()
+
+	for tagRows.Next() {
+		var postID int
+		tag := prototypes.Tag{}
+		err = tagRows.Scan(&tag.ID, &tag.Name, &postID)
+		if err != nil {
+			return
+		}
+		post := postMap[postID]
+		post.Tags = append(post.Tags, tag)
+	}
+
+	// convert postMap to post list
+	posts = []prototypes.Post{}
+	for _, post := range postMap {
+		posts = append(posts, *post)
+	}
+
+	if err = txn.Commit(); err != nil {
+		err = TransactionError(ctx, err)
 	}
 	return
 }

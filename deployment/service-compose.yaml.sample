@@ -1,18 +1,17 @@
-version: '3'
+version: "3.8"
 services:
   app:
-    container_name: app_container
     build:
       dockerfile: Dockerfile
       context: .
-    ports:
-      - "80:80"
+    environment:
+      - VIRTUAL_HOST=example.com
+      - LETSENCRYPT_HOST=example.com
     networks:
       - app-network
     restart: unless-stopped
 
   postgres: # docker system use service name as host name if no alias was specified.
-    container_name: postgres_container
     image: postgres
     environment:
       POSTGRES_USER: gitery
@@ -28,7 +27,6 @@ services:
     restart: unless-stopped
 
   pgadmin:
-    container_name: pgadmin_container
     image: dpage/pgadmin4
     environment:
       PGADMIN_DEFAULT_EMAIL: name@example.com
@@ -43,7 +41,8 @@ services:
 
 networks:
   app-network:
-    driver: bridge
+    external:
+      name: nginx-proxy-network
 
 volumes:
     postgres:

@@ -1,10 +1,10 @@
-drop table if exists users cascade;
-drop table if exists posts cascade;
-drop table if exists comments;
-drop table if exists tags cascade;
-drop table if exists post_tag;
+DROP TABLE IF EXISTS users cascade;
+DROP TABLE IF EXISTS posts cascade;
+DROP TABLE IF EXISTS comments;
+DROP TABLE IF EXISTS tags cascade;
+DROP TABLE IF EXISTS post_tag;
 
-create table users (
+CREATE TABLE users (
 	id SERIAL PRIMARY KEY,
 	email VARCHAR(255) UNIQUE NOT NULL,
 	hashed_pwd VARCHAR(255) UNIQUE NOT NULL,
@@ -13,31 +13,31 @@ create table users (
 	updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-create table posts (
+CREATE TABLE posts (
 	id SERIAL PRIMARY KEY,
 	title VARCHAR(255) NOT NULL,
 	content TEXT NOT NULL,
-	user_id INTEGER REFERENCES users(id),
+	user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
 	created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 	updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-create table comments(
+CREATE TABLE comments(
 	id SERIAL PRIMARY KEY,
 	content TEXT NOT NULL,
-	post_id INTEGER REFERENCES posts(id),
-	user_id INTEGER REFERENCES users(id),
+	post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
+	user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
 	created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 	updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-create table tags(
+CREATE TABLE tags(
 	id SERIAL PRIMARY KEY,
-	name VARCHAR(255) NOT NULL
+	name VARCHAR(255) UNIQUE NOT NULL
 );
 
-create table post_tag(
-	id SERIAL PRIMARY KEY,
-	post_id INTEGER REFERENCES posts(id),
-	tag_id INTEGER REFERENCES tags(id)
+CREATE TABLE post_tag(
+	post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
+	tag_id INTEGER REFERENCES tags(id) ON DELETE CASCADE,
+	PRIMARY KEY (post_id, tag_id)
 );
