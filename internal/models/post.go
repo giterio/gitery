@@ -101,9 +101,18 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (po
 	if limit == 0 {
 		limit = 10
 	}
-	posts = []prototypes.Post{}
+
+	txn, err := ps.DB.Begin()
+	if err != nil {
+		err = ServerError(ctx, err)
+		return
+	}
+
+	// postMap is used to assemble posts and comments efficiently
+	postMap := map[int]*prototypes.Post{}
+
 	// query all the posts of the user
-	postRows, err := ps.DB.QueryContext(ctx, `
+	postRows, err := txn.QueryContext(ctx, `
 		SELECT posts.id, posts.title, posts.user_id, posts.created_at, posts.updated_at,
 		users.id AS user_id, users.email, users.nickname, users.created_at AS user_created_at, users.updated_at AS user_updated_at
 		FROM posts LEFT JOIN users ON (posts.user_id = users.id)
@@ -118,13 +127,46 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (po
 
 	// fill the posts into list
 	for postRows.Next() {
-		post := prototypes.Post{Comments: []prototypes.Comment{}, Author: &prototypes.User{}}
+		post := prototypes.Post{Comments: []prototypes.Comment{}, Tags: []prototypes.Tag{}, Author: &prototypes.User{}}
 		err = postRows.Scan(&post.ID, &post.Title, &post.UserID, &post.CreatedAt, &post.UpdatedAt,
 			&post.Author.ID, &post.Author.Email, &post.Author.Nickname, &post.Author.CreatedAt, &post.Author.UpdatedAt)
 		if err != nil {
 			return
 		}
-		posts = append(posts, post)
+		postMap[*post.ID] = &post
+	}
+
+	// query all the tags related to the posts
+	tagRows, err := txn.QueryContext(ctx, `
+		SELECT tags.id, tags.name, post_tag.post_id
+		FROM tags INNER JOIN post_tag
+		ON tags.id = post_tag.tag_id AND post_tag.post_id IN (SELECT id FROM posts ORDER BY posts.updated_at DESC LIMIT $1 OFFSET $2)
+	`, limit, offset)
+	if err != nil {
+		err = TransactionError(ctx, err)
+		return
+	}
+	defer tagRows.Close()
+
+	for tagRows.Next() {
+		var postID int
+		tag := prototypes.Tag{}
+		err = tagRows.Scan(&tag.ID, &tag.Name, &postID)
+		if err != nil {
+			return
+		}
+		post := postMap[postID]
+		post.Tags = append(post.Tags, tag)
+	}
+
+	// convert postMap to post list
+	posts = []prototypes.Post{}
+	for _, post := range postMap {
+		posts = append(posts, *post)
+	}
+
+	if err = txn.Commit(); err != nil {
+		err = TransactionError(ctx, err)
 	}
 	return
 }

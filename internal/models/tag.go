@@ -21,19 +21,18 @@ func (ts *TagService) Assign(ctx context.Context, userID int, postID int, tagNam
 		return
 	}
 
-	post := prototypes.Post{}
-	err = txn.QueryRowContext(ctx, "SELECT id, title, content, user_id, created_at, updated_at FROM posts WHERE id = $1", postID).Scan(
-		&post.ID, &post.Title, &post.Content, &post.UserID, &post.CreatedAt, &post.UpdatedAt)
+	// check if user is author of the post
+	var isAuthor bool
+	err = txn.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM posts WHERE id = $1 AND user_id = $2)", postID, userID).Scan(&isAuthor)
 	if err != nil {
 		err = HandleDatabaseQueryError(ctx, err)
 		return
-	}
-
-	if *post.UserID != userID {
+	} else if !isAuthor {
 		err = ForbiddenError(ctx, nil)
 		return
 	}
 
+	// upsert tag
 	tag = prototypes.Tag{}
 	err = txn.QueryRowContext(ctx, `
 	 	WITH ins AS (
@@ -54,12 +53,13 @@ func (ts *TagService) Assign(ctx context.Context, userID int, postID int, tagNam
 		return
 	}
 
+	// create link of post and tag
 	_, err = txn.ExecContext(ctx, `
 		INSERT INTO post_tag (post_id, tag_id)
 		VALUES ($1, $2)
 		ON CONFLICT (post_id, tag_id)
 		DO NOTHING
-	`, post.ID, tag.ID)
+	`, postID, tag.ID)
 	if err != nil {
 		if rollbackErr := txn.Rollback(); rollbackErr != nil {
 			log.Fatalf("update drivers: unable to rollback: %v", rollbackErr)

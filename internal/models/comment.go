@@ -58,10 +58,29 @@ func (cs *CommentService) FetchDetail(ctx context.Context, id int) (comment prot
 
 // Create comment
 func (cs *CommentService) Create(ctx context.Context, comment *prototypes.Comment) (err error) {
-	if comment.PostID == nil {
-		err = NotFoundError(ctx, nil)
+	// check if user exist
+	var isUserExist bool
+	err = cs.DB.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM users WHERE id = $1)", comment.UserID).Scan(&isUserExist)
+	if err != nil {
+		err = HandleDatabaseQueryError(ctx, err)
+		return
+	} else if !isUserExist {
+		err = NotFoundError(ctx, err)
 		return
 	}
+
+	// check if post exist
+	var isPostExist bool
+	err = cs.DB.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM posts WHERE id = $1)", comment.PostID).Scan(&isPostExist)
+	if err != nil {
+		err = HandleDatabaseQueryError(ctx, err)
+		return
+	} else if !isPostExist {
+		err = NotFoundError(ctx, err)
+		return
+	}
+
+	// insert new comments
 	err = cs.DB.QueryRowContext(ctx, "INSERT INTO comments (content, user_id, post_id) VALUES ($1, $2, $3) RETURNING id, created_at, updated_at",
 		comment.Content, comment.UserID, comment.PostID).Scan(&comment.ID, &comment.CreatedAt, &comment.UpdatedAt)
 	if err != nil {
