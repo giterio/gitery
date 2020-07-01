@@ -32,7 +32,7 @@ func (h *TagHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // Create a tag
-// POST /tag/
+// POST /tag
 func (h *TagHandler) handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
 
@@ -61,8 +61,8 @@ func (h *TagHandler) handlePost(w http.ResponseWriter, r *http.Request) (err err
 	return
 }
 
-// Delete a comment
-// DELETE /comment/1
+// Remove a tag
+// DELETE /tag
 func (h *TagHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
 
