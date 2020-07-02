@@ -19,6 +19,7 @@ type User struct {
 	Nickname  string    `json:"nickname"`
 	CreatedAt time.Time `json:"-"` // reconstruct in UserView
 	UpdatedAt time.Time `json:"-"` // reconstruct in UserView
+	IsDeleted bool      `json:"isDeleted"`
 }
 
 // UserService ...

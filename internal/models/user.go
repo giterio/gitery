@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -18,7 +19,9 @@ type UserService struct {
 func (us *UserService) Fetch(ctx context.Context, id int) (user prototypes.User, err error) {
 	user = prototypes.User{}
 	err = us.DB.QueryRowContext(ctx, `
-		SELECT id, email, hashed_pwd, nickname, created_at, updated_at FROM users WHERE id = $1
+		SELECT id, email, hashed_pwd, nickname, created_at, updated_at
+		FROM users
+		WHERE id = $1
 		`, id).Scan(&user.ID, &user.Email, &user.HashedPwd, &user.Nickname, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		err = HandleDatabaseQueryError(ctx, err)
@@ -48,10 +51,11 @@ func (us *UserService) Create(ctx context.Context, user *prototypes.User) (err e
 // Update a user
 func (us *UserService) Update(ctx context.Context, user *prototypes.User) (err error) {
 	err = us.DB.QueryRowContext(ctx, `
-		UPDATE users set hashed_pwd = $2, nickname = $3
+		UPDATE users
+		set hashed_pwd = $2, nickname = $3, updated_at = $4
 		WHERE id = $1
 		RETURNING updated_at
-		`, user.ID, user.HashedPwd, user.Nickname).Scan(&user.UpdatedAt)
+		`, user.ID, user.HashedPwd, user.Nickname, time.Now()).Scan(&user.UpdatedAt)
 	if err != nil {
 		err = HandleDatabaseQueryError(ctx, err)
 	}
@@ -81,8 +85,10 @@ func (us *UserService) Delete(ctx context.Context, login *prototypes.Login) (err
 		return
 	}
 	_, err = us.DB.ExecContext(ctx, `
-		DELETE FROM users WHERE id = $1
-		`, user.ID)
+		UPDATE users
+		set is_deleted = $2, updated_at = $4
+		WHERE id = $1
+		`, user.ID, true, time.Now())
 	return
 }
 

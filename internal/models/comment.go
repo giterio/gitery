@@ -17,10 +17,18 @@ type CommentService struct {
 func (cs *CommentService) Fetch(ctx context.Context, id int) (comment prototypes.Comment, err error) {
 	comment = prototypes.Comment{}
 	err = cs.DB.QueryRowContext(ctx, `
-		SELECT id, content, user_id, post_id, created_at, updated_at
+		SELECT id, content, user_id, post_id, parent_id, is_deleted, created_at, updated_at
 		FROM comments
 		WHERE id = $1
-		`, id).Scan(&comment.ID, &comment.Content, &comment.UserID, &comment.PostID, &comment.CreatedAt, &comment.UpdatedAt)
+		`, id).Scan(
+		&comment.ID,
+		&comment.Content,
+		&comment.UserID,
+		&comment.PostID,
+		&comment.ParentID,
+		&comment.IsDeleted,
+		&comment.CreatedAt,
+		&comment.UpdatedAt)
 	if err != nil {
 		err = HandleDatabaseQueryError(ctx, err)
 	}
@@ -38,10 +46,18 @@ func (cs *CommentService) FetchDetail(ctx context.Context, id int) (comment prot
 	// query comment from DB
 	comment = prototypes.Comment{}
 	err = txn.QueryRowContext(ctx, `
-		SELECT id, content, user_id, post_id, created_at, updated_at
+		SELECT id, content, user_id, post_id, parent_id, is_deleted, created_at, updated_at
 		FROM comments
 		WHERE id = $1
-		`, id).Scan(&comment.ID, &comment.Content, &comment.UserID, &comment.PostID, &comment.CreatedAt, &comment.UpdatedAt)
+		`, id).Scan(
+		&comment.ID,
+		&comment.Content,
+		&comment.UserID,
+		&comment.PostID,
+		&comment.ParentID,
+		&comment.IsDeleted,
+		&comment.CreatedAt,
+		&comment.UpdatedAt)
 	if err != nil {
 		err = HandleDatabaseQueryError(ctx, err)
 		return
@@ -96,10 +112,10 @@ func (cs *CommentService) Create(ctx context.Context, comment *prototypes.Commen
 
 	// insert new comments
 	err = cs.DB.QueryRowContext(ctx, `
-		INSERT INTO comments (content, user_id, post_id)
-		VALUES ($1, $2, $3)
+		INSERT INTO comments (content, user_id, post_id, parent_id)
+		VALUES ($1, $2, $3, $4)
 		RETURNING id, created_at, updated_at
-		`, comment.Content, comment.UserID, comment.PostID).Scan(&comment.ID, &comment.CreatedAt, &comment.UpdatedAt)
+		`, comment.Content, comment.UserID, comment.PostID, comment.ParentID).Scan(&comment.ID, &comment.CreatedAt, &comment.UpdatedAt)
 	if err != nil {
 		err = HandleDatabaseQueryError(ctx, err)
 	}
@@ -123,9 +139,10 @@ func (cs *CommentService) Update(ctx context.Context, comment *prototypes.Commen
 // Delete a comment
 func (cs *CommentService) Delete(ctx context.Context, comment *prototypes.Comment) (err error) {
 	_, err = cs.DB.ExecContext(ctx, `
-		DELETE FROM comments
+		UPDATE comments
+		SET is_deleted = $3, updated_at = $4
 		WHERE id = $1 AND user_id = $2
-		`, comment.ID, comment.UserID)
+		`, comment.ID, comment.UserID, true, time.Now())
 	if err != nil {
 		err = TransactionError(ctx, err)
 	}

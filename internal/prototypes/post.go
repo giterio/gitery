@@ -10,10 +10,11 @@ type Post struct {
 	// Structural data
 	ID        *int      `json:"id"`
 	Title     string    `json:"title"`
-	Content   string    `json:"content,omitempty"`
+	Content   string    `json:"content"`
 	UserID    *int      `json:"userID"`
 	CreatedAt time.Time `json:"-"` // reconstruct in PostView
 	UpdatedAt time.Time `json:"-"` // reconstruct in PostView
+	IsDeleted bool      `json:"isDeleted"`
 	// Linked data
 	Author   *User     `json:"-"` // reconstruct in PostView
 	Tags     []Tag     `json:"tags,omitempty"`

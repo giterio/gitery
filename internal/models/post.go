@@ -62,7 +62,8 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post prototypes
 
 	// query tags related to the post
 	tagRows, err := txn.QueryContext(ctx, `
-		SELECT id, name FROM tags
+		SELECT id, name
+		FROM tags
 		WHERE id IN (SELECT tag_id FROM post_tag WHERE post_id = $1)
 		`, id)
 	if err != nil {
@@ -131,7 +132,8 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (po
 	postRows, err := txn.QueryContext(ctx, `
 		SELECT posts.id, posts.title, posts.user_id, posts.created_at, posts.updated_at,
 		users.id AS user_id, users.email, users.nickname, users.created_at AS user_created_at, users.updated_at AS user_updated_at
-		FROM posts LEFT JOIN users ON (posts.user_id = users.id)
+		FROM posts LEFT JOIN users
+		ON posts.user_id = users.id AND posts.is_deleted = false
 		ORDER BY posts.updated_at DESC
 		LIMIT $1 OFFSET $2
 		`, limit, offset)
@@ -211,7 +213,8 @@ func (ps *PostService) Create(ctx context.Context, post *prototypes.Post) (err e
 // Update a post
 func (ps *PostService) Update(ctx context.Context, post *prototypes.Post) (err error) {
 	err = ps.DB.QueryRowContext(ctx, `
-		UPDATE posts SET title = $3, content = $4, updated_at = $5
+		UPDATE posts
+		SET title = $3, content = $4, updated_at = $5
 		WHERE id = $1 AND user_id = $2
 		RETURNING updated_at
 		`, post.ID, post.UserID, post.Title, post.Content, time.Now()).Scan(&post.UpdatedAt)
@@ -224,8 +227,10 @@ func (ps *PostService) Update(ctx context.Context, post *prototypes.Post) (err e
 // Delete a post
 func (ps *PostService) Delete(ctx context.Context, post *prototypes.Post) (err error) {
 	_, err = ps.DB.ExecContext(ctx, `
-		DELETE FROM posts
-		WHERE id = $1 AND user_id =$2`, post.ID, post.UserID)
+		UPDATE posts
+		SET is_deleted = $3, updated_at = $4
+		WHERE id = $1 AND user_id =$2
+		`, post.ID, post.UserID, true, time.Now())
 	if err != nil {
 		err = TransactionError(ctx, err)
 	}
