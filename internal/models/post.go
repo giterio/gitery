@@ -16,8 +16,11 @@ type PostService struct {
 // Fetch ...
 func (ps *PostService) Fetch(ctx context.Context, id int) (post prototypes.Post, err error) {
 	post = prototypes.Post{}
-	err = ps.DB.QueryRowContext(ctx, "SELECT id, title, content, user_id, created_at, updated_at FROM posts WHERE id = $1", id).Scan(
-		&post.ID, &post.Title, &post.Content, &post.UserID, &post.CreatedAt, &post.UpdatedAt)
+	err = ps.DB.QueryRowContext(ctx, `
+		SELECT id, title, content, user_id, created_at, updated_at
+		FROM posts
+		WHERE id = $1
+		`, id).Scan(&post.ID, &post.Title, &post.Content, &post.UserID, &post.CreatedAt, &post.UpdatedAt)
 	if err != nil {
 		err = HandleDatabaseQueryError(ctx, err)
 	}
@@ -34,8 +37,11 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post prototypes
 
 	// query post data
 	post = prototypes.Post{}
-	err = txn.QueryRowContext(ctx, "SELECT id, title, content, user_id, created_at, updated_at FROM posts WHERE id = $1", id).Scan(
-		&post.ID, &post.Title, &post.Content, &post.UserID, &post.CreatedAt, &post.UpdatedAt)
+	err = txn.QueryRowContext(ctx, `
+		SELECT id, title, content, user_id, created_at, updated_at
+		FROM posts
+		WHERE id = $1
+		`, id).Scan(&post.ID, &post.Title, &post.Content, &post.UserID, &post.CreatedAt, &post.UpdatedAt)
 	if err != nil {
 		err = HandleDatabaseQueryError(ctx, err)
 		return
@@ -43,8 +49,11 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post prototypes
 
 	// query user information
 	user := prototypes.User{}
-	err = txn.QueryRowContext(ctx, "SELECT id, email, hashed_pwd, nickname, created_at, updated_at FROM users WHERE id = $1", *post.UserID).Scan(
-		&user.ID, &user.Email, &user.HashedPwd, &user.Nickname, &user.CreatedAt, &user.UpdatedAt)
+	err = txn.QueryRowContext(ctx, `
+		SELECT id, email, hashed_pwd, nickname, created_at, updated_at
+		FROM users
+		WHERE id = $1
+		`, *post.UserID).Scan(&user.ID, &user.Email, &user.HashedPwd, &user.Nickname, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		err = HandleDatabaseQueryError(ctx, err)
 		return
@@ -52,7 +61,10 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post prototypes
 	post.Author = &user
 
 	// query tags related to the post
-	tagRows, err := txn.QueryContext(ctx, "SELECT id, name FROM tags WHERE id IN (SELECT tag_id FROM post_tag WHERE post_id = $1)", id)
+	tagRows, err := txn.QueryContext(ctx, `
+		SELECT id, name FROM tags
+		WHERE id IN (SELECT tag_id FROM post_tag WHERE post_id = $1)
+		`, id)
 	if err != nil {
 		err = TransactionError(ctx, err)
 		return
@@ -71,7 +83,11 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post prototypes
 	}
 
 	// query comments related to the post
-	commentRows, err := txn.QueryContext(ctx, "SELECT id, content, user_id, created_at, updated_at FROM comments WHERE post_id =$1", id)
+	commentRows, err := txn.QueryContext(ctx, `
+		SELECT id, content, user_id, created_at, updated_at
+		FROM comments
+		WHERE post_id =$1
+		`, id)
 	if err != nil {
 		err = TransactionError(ctx, err)
 		return
@@ -118,7 +134,7 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (po
 		FROM posts LEFT JOIN users ON (posts.user_id = users.id)
 		ORDER BY posts.updated_at DESC
 		LIMIT $1 OFFSET $2
-	`, limit, offset)
+		`, limit, offset)
 	if err != nil {
 		err = TransactionError(ctx, err)
 		return
@@ -141,7 +157,7 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (po
 		SELECT tags.id, tags.name, post_tag.post_id
 		FROM tags INNER JOIN post_tag
 		ON tags.id = post_tag.tag_id AND post_tag.post_id IN (SELECT id FROM posts ORDER BY posts.updated_at DESC LIMIT $1 OFFSET $2)
-	`, limit, offset)
+		`, limit, offset)
 	if err != nil {
 		err = TransactionError(ctx, err)
 		return
@@ -173,7 +189,10 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (po
 
 // Create a new post
 func (ps *PostService) Create(ctx context.Context, post *prototypes.Post) (err error) {
-	statement := "INSERT INTO posts (title, content, user_id) VALUES ($1, $2, $3) RETURNING id, created_at, updated_at"
+	statement := `
+		INSERT INTO posts (title, content, user_id)
+		VALUES ($1, $2, $3)
+		RETURNING id, created_at, updated_at`
 	stmt, err := ps.DB.PrepareContext(ctx, statement)
 	if err != nil {
 		err = TransactionError(ctx, err)
@@ -191,8 +210,11 @@ func (ps *PostService) Create(ctx context.Context, post *prototypes.Post) (err e
 
 // Update a post
 func (ps *PostService) Update(ctx context.Context, post *prototypes.Post) (err error) {
-	err = ps.DB.QueryRowContext(ctx, "UPDATE posts SET title = $3, content = $4, updated_at = $5 WHERE id = $1 AND user_id = $2 RETURNING updated_at",
-		post.ID, post.UserID, post.Title, post.Content, time.Now()).Scan(&post.UpdatedAt)
+	err = ps.DB.QueryRowContext(ctx, `
+		UPDATE posts SET title = $3, content = $4, updated_at = $5
+		WHERE id = $1 AND user_id = $2
+		RETURNING updated_at
+		`, post.ID, post.UserID, post.Title, post.Content, time.Now()).Scan(&post.UpdatedAt)
 	if err != nil {
 		err = HandleDatabaseQueryError(ctx, err)
 	}
@@ -201,7 +223,9 @@ func (ps *PostService) Update(ctx context.Context, post *prototypes.Post) (err e
 
 // Delete a post
 func (ps *PostService) Delete(ctx context.Context, post *prototypes.Post) (err error) {
-	_, err = ps.DB.ExecContext(ctx, "DELETE FROM posts WHERE id = $1 AND user_id =$2", post.ID, post.UserID)
+	_, err = ps.DB.ExecContext(ctx, `
+		DELETE FROM posts
+		WHERE id = $1 AND user_id =$2`, post.ID, post.UserID)
 	if err != nil {
 		err = TransactionError(ctx, err)
 	}

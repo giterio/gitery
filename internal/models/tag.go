@@ -23,7 +23,9 @@ func (ts *TagService) Assign(ctx context.Context, userID int, postID int, tagNam
 
 	// check if user is author of the post
 	var isAuthor bool
-	err = txn.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM posts WHERE id = $1 AND user_id = $2)", postID, userID).Scan(&isAuthor)
+	err = txn.QueryRowContext(ctx, `
+		SELECT EXISTS (SELECT 1 FROM posts WHERE id = $1 AND user_id = $2)
+		`, postID, userID).Scan(&isAuthor)
 	if err != nil {
 		err = HandleDatabaseQueryError(ctx, err)
 		return
@@ -44,7 +46,7 @@ func (ts *TagService) Assign(ctx context.Context, userID int, postID int, tagNam
 		UNION ALL
 		SELECT id, name FROM tags
 		WHERE name = $1 LIMIT 1
-	`, tagName).Scan(&tag.ID, &tag.Name)
+		`, tagName).Scan(&tag.ID, &tag.Name)
 	if err != nil {
 		if rollbackErr := txn.Rollback(); rollbackErr != nil {
 			log.Fatalf("update drivers: unable to rollback: %v", rollbackErr)
@@ -59,7 +61,7 @@ func (ts *TagService) Assign(ctx context.Context, userID int, postID int, tagNam
 		VALUES ($1, $2)
 		ON CONFLICT (post_id, tag_id)
 		DO NOTHING
-	`, postID, tag.ID)
+		`, postID, tag.ID)
 	if err != nil {
 		if rollbackErr := txn.Rollback(); rollbackErr != nil {
 			log.Fatalf("update drivers: unable to rollback: %v", rollbackErr)
@@ -84,7 +86,9 @@ func (ts *TagService) Remove(ctx context.Context, userID int, postID int, tagID 
 
 	// check if user is author of the post
 	var isAuthor bool
-	err = txn.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM posts WHERE id = $1 AND user_id = $2)", postID, userID).Scan(&isAuthor)
+	err = txn.QueryRowContext(ctx, `
+		SELECT EXISTS (SELECT 1 FROM posts WHERE id = $1 AND user_id = $2)
+		`, postID, userID).Scan(&isAuthor)
 	if err != nil {
 		err = HandleDatabaseQueryError(ctx, err)
 		return
@@ -93,7 +97,9 @@ func (ts *TagService) Remove(ctx context.Context, userID int, postID int, tagID 
 		return
 	}
 
-	_, err = txn.ExecContext(ctx, "DELETE FROM post_tag WHERE post_id = $1 AND tag_id = $2", postID, tagID)
+	_, err = txn.ExecContext(ctx, `
+		DELETE FROM post_tag WHERE post_id = $1 AND tag_id = $2
+		`, postID, tagID)
 	if err != nil {
 		if rollbackErr := txn.Rollback(); rollbackErr != nil {
 			log.Fatalf("update drivers: unable to rollback: %v", rollbackErr)

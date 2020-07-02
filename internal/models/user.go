@@ -17,8 +17,9 @@ type UserService struct {
 // Fetch user information
 func (us *UserService) Fetch(ctx context.Context, id int) (user prototypes.User, err error) {
 	user = prototypes.User{}
-	err = us.DB.QueryRowContext(ctx, "SELECT id, email, hashed_pwd, nickname, created_at, updated_at FROM users WHERE id = $1", id).Scan(
-		&user.ID, &user.Email, &user.HashedPwd, &user.Nickname, &user.CreatedAt, &user.UpdatedAt)
+	err = us.DB.QueryRowContext(ctx, `
+		SELECT id, email, hashed_pwd, nickname, created_at, updated_at FROM users WHERE id = $1
+		`, id).Scan(&user.ID, &user.Email, &user.HashedPwd, &user.Nickname, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		err = HandleDatabaseQueryError(ctx, err)
 	}
@@ -27,7 +28,10 @@ func (us *UserService) Fetch(ctx context.Context, id int) (user prototypes.User,
 
 // Create new user
 func (us *UserService) Create(ctx context.Context, user *prototypes.User) (err error) {
-	statement := "INSERT INTO users (email, hashed_pwd, nickname) VALUES ($1, $2, $3) RETURNING id, created_at, updated_at"
+	statement := `
+		INSERT INTO users (email, hashed_pwd, nickname)
+		VALUES ($1, $2, $3)
+		RETURNING id, created_at, updated_at`
 	stmt, err := us.DB.PrepareContext(ctx, statement)
 	if err != nil {
 		err = TransactionError(ctx, err)
@@ -43,8 +47,11 @@ func (us *UserService) Create(ctx context.Context, user *prototypes.User) (err e
 
 // Update a user
 func (us *UserService) Update(ctx context.Context, user *prototypes.User) (err error) {
-	err = us.DB.QueryRowContext(ctx, "UPDATE users set hashed_pwd = $2, nickname = $3 WHERE id = $1 RETURNING updated_at",
-		user.ID, user.HashedPwd, user.Nickname).Scan(&user.UpdatedAt)
+	err = us.DB.QueryRowContext(ctx, `
+		UPDATE users set hashed_pwd = $2, nickname = $3
+		WHERE id = $1
+		RETURNING updated_at
+		`, user.ID, user.HashedPwd, user.Nickname).Scan(&user.UpdatedAt)
 	if err != nil {
 		err = HandleDatabaseQueryError(ctx, err)
 	}
@@ -54,8 +61,11 @@ func (us *UserService) Update(ctx context.Context, user *prototypes.User) (err e
 // Delete a post
 func (us *UserService) Delete(ctx context.Context, login *prototypes.Login) (err error) {
 	user := prototypes.User{}
-	err = us.DB.QueryRowContext(ctx, "SELECT id, email, hashed_pwd, nickname, created_at, updated_at FROM users WHERE email = $1", login.Email).Scan(
-		&user.ID, &user.Email, &user.HashedPwd, &user.Nickname, &user.CreatedAt, &user.UpdatedAt)
+	err = us.DB.QueryRowContext(ctx, `
+		SELECT id, email, hashed_pwd, nickname, created_at, updated_at
+		FROM users
+		WHERE email = $1
+		`, login.Email).Scan(&user.ID, &user.Email, &user.HashedPwd, &user.Nickname, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			err = IdentityNonExistError(ctx, err)
@@ -70,7 +80,9 @@ func (us *UserService) Delete(ctx context.Context, login *prototypes.Login) (err
 		err = InvalidPasswordError(ctx, err)
 		return
 	}
-	_, err = us.DB.ExecContext(ctx, "DELETE FROM users WHERE id = $1", user.ID)
+	_, err = us.DB.ExecContext(ctx, `
+		DELETE FROM users WHERE id = $1
+		`, user.ID)
 	return
 }
 
@@ -89,7 +101,11 @@ func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []prototyp
 	// postMap is used to assemble posts and comments efficiently
 	postMap := map[int]*prototypes.Post{}
 	// query all the posts of the user
-	postRows, err := txn.QueryContext(ctx, "SELECT id, title, content, created_at, updated_at FROM posts WHERE user_id =$1", id)
+	postRows, err := txn.QueryContext(ctx, `
+		SELECT id, title, content, created_at, updated_at
+		FROM posts
+		WHERE user_id =$1
+		`, id)
 	if err != nil {
 		err = TransactionError(ctx, err)
 		return
@@ -111,7 +127,7 @@ func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []prototyp
 		SELECT tags.id, tags.name, post_tag.post_id
 		FROM tags INNER JOIN post_tag
 		ON tags.id = post_tag.tag_id AND post_tag.post_id IN (SELECT id FROM posts WHERE user_id =$1)
-	`, id)
+		`, id)
 	if err != nil {
 		err = TransactionError(ctx, err)
 		return
@@ -134,8 +150,8 @@ func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []prototyp
 		SELECT comments.id, comments.content, comments.post_id, comments.user_id, comments.created_at, comments.updated_at,
 		users.id AS user_id, users.email, users.nickname, users.created_at AS user_created_at, users.updated_at AS user_updated_at
 		FROM comments, users
-		WHERE comments.post_id IN (SELECT id FROM posts WHERE user_id = $1) AND users.id = comments.user_id
-	`, id)
+		WHERE users.id = comments.user_id AND comments.post_id IN (SELECT id FROM posts WHERE user_id = $1)
+		`, id)
 	if err != nil {
 		err = TransactionError(ctx, err)
 		return
