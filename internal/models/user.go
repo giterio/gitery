@@ -98,7 +98,7 @@ type UserPostService struct {
 }
 
 // Fetch user's all posts
-func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []prototypes.Post, err error) {
+func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []*prototypes.Post, err error) {
 	txn, err := ups.DB.Begin()
 	if err != nil {
 		err = ServerError(ctx, err)
@@ -177,9 +177,9 @@ func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []prototyp
 	}
 
 	// convert postMap to post list
-	posts = []prototypes.Post{}
+	posts = []*prototypes.Post{}
 	for _, post := range postMap {
-		posts = append(posts, *post)
+		posts = append(posts, post)
 	}
 
 	if err = txn.Commit(); err != nil {

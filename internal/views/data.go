@@ -23,7 +23,7 @@ func Render(ctx context.Context, w http.ResponseWriter, data interface{}) (err e
 	if data != nil {
 		dataView.Data = data
 	}
-	output, err := json.MarshalIndent(dataView, "", "\t\t")
+	output, err := json.MarshalIndent(dataView, "", "\t")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

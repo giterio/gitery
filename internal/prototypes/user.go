@@ -19,7 +19,7 @@ type User struct {
 	Nickname  string    `json:"nickname"`
 	CreatedAt time.Time `json:"-"` // reconstruct in UserView
 	UpdatedAt time.Time `json:"-"` // reconstruct in UserView
-	IsDeleted bool      `json:"isDeleted"`
+	IsDeleted bool      `json:"-"`
 }
 
 // UserService ...
@@ -32,5 +32,5 @@ type UserService interface {
 
 // UserPostService ...
 type UserPostService interface {
-	Fetch(ctx context.Context, id int) (posts []Post, err error)
+	Fetch(ctx context.Context, id int) (posts []*Post, err error)
 }

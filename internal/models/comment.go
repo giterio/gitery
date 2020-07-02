@@ -84,9 +84,15 @@ func (cs *CommentService) FetchDetail(ctx context.Context, id int) (comment prot
 
 // Create comment
 func (cs *CommentService) Create(ctx context.Context, comment *prototypes.Comment) (err error) {
+	txn, err := cs.DB.Begin()
+	if err != nil {
+		err = ServerError(ctx, err)
+		return
+	}
+
 	// check if user exist
 	var isUserExist bool
-	err = cs.DB.QueryRowContext(ctx, `
+	err = txn.QueryRowContext(ctx, `
 		SELECT EXISTS (SELECT 1 FROM users WHERE id = $1)
 		`, comment.UserID).Scan(&isUserExist)
 	if err != nil {
@@ -99,7 +105,7 @@ func (cs *CommentService) Create(ctx context.Context, comment *prototypes.Commen
 
 	// check if post exist
 	var isPostExist bool
-	err = cs.DB.QueryRowContext(ctx, `
+	err = txn.QueryRowContext(ctx, `
 		SELECT EXISTS (SELECT 1 FROM posts WHERE id = $1)
 		`, comment.PostID).Scan(&isPostExist)
 	if err != nil {
@@ -110,14 +116,32 @@ func (cs *CommentService) Create(ctx context.Context, comment *prototypes.Commen
 		return
 	}
 
+	if comment.ParentID != nil {
+		var isCommentExist bool
+		err = txn.QueryRowContext(ctx, `
+			SELECT EXISTS (SELECT 1 FROM comments WHERE id = $1 AND post_id = $2)
+			`, comment.ParentID, comment.PostID).Scan(&isCommentExist)
+		if err != nil {
+			err = HandleDatabaseQueryError(ctx, err)
+			return
+		} else if !isCommentExist {
+			err = NotFoundError(ctx, err)
+			return
+		}
+	}
+
 	// insert new comments
-	err = cs.DB.QueryRowContext(ctx, `
+	err = txn.QueryRowContext(ctx, `
 		INSERT INTO comments (content, user_id, post_id, parent_id)
 		VALUES ($1, $2, $3, $4)
 		RETURNING id, created_at, updated_at
 		`, comment.Content, comment.UserID, comment.PostID, comment.ParentID).Scan(&comment.ID, &comment.CreatedAt, &comment.UpdatedAt)
 	if err != nil {
 		err = HandleDatabaseQueryError(ctx, err)
+	}
+
+	if err = txn.Commit(); err != nil {
+		err = TransactionError(ctx, err)
 	}
 	return
 }

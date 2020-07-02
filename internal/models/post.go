@@ -88,7 +88,7 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post prototypes
 		SELECT id, content, user_id, parent_id, is_deleted, created_at, updated_at
 		FROM comments
 		WHERE post_id = $1
-		ORDER BY posts.created_at ASC
+		ORDER BY comments.created_at ASC
 		`, id)
 	if err != nil {
 		err = TransactionError(ctx, err)
@@ -118,9 +118,11 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post prototypes
 	}
 
 	for _, v := range commentList {
-		c := commentMap[*v.ParentID]
-		if c != nil {
-			c.Comments = append(c.Comments, v)
+		if v.ParentID != nil {
+			c := commentMap[*v.ParentID]
+			if c != nil {
+				c.Comments = append(c.Comments, v)
+			}
 		}
 	}
 
@@ -138,7 +140,7 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post prototypes
 }
 
 // FetchList is to get latest posts
-func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (posts []prototypes.Post, err error) {
+func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (posts []*prototypes.Post, err error) {
 	if limit == 0 {
 		limit = 10
 	}
@@ -202,9 +204,9 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (po
 	}
 
 	// convert postMap to post list
-	posts = []prototypes.Post{}
+	posts = []*prototypes.Post{}
 	for _, post := range postMap {
-		posts = append(posts, *post)
+		posts = append(posts, post)
 	}
 
 	if err = txn.Commit(); err != nil {

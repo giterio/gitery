@@ -14,7 +14,7 @@ type Post struct {
 	UserID    *int      `json:"userID"`
 	CreatedAt time.Time `json:"-"` // reconstruct in PostView
 	UpdatedAt time.Time `json:"-"` // reconstruct in PostView
-	IsDeleted bool      `json:"isDeleted"`
+	IsDeleted bool      `json:"-"`
 	// Linked data
 	Author   *User      `json:"-"` // reconstruct in PostView
 	Tags     []*Tag     `json:"tags,omitempty"`
@@ -25,7 +25,7 @@ type Post struct {
 type PostService interface {
 	Fetch(ctx context.Context, id int) (post Post, err error)
 	FetchDetail(ctx context.Context, id int) (post Post, err error)
-	FetchList(ctx context.Context, limit int, offset int) (posts []Post, err error)
+	FetchList(ctx context.Context, limit int, offset int) (posts []*Post, err error)
 	Create(ctx context.Context, post *Post) (err error)
 	Update(ctx context.Context, post *Post) (err error)
 	Delete(ctx context.Context, post *Post) (err error)

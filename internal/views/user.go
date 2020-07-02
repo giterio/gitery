@@ -15,16 +15,16 @@ type UserView struct {
 }
 
 // BuildUserView compose UserView from a User
-func BuildUserView(user prototypes.User) UserView {
+func BuildUserView(user *prototypes.User) UserView {
 	return UserView{
-		User:      user,
+		User:      *user,
 		CreatedAt: user.CreatedAt.Unix(),
 		UpdatedAt: user.UpdatedAt.Unix(),
 	}
 }
 
 // RenderUser ...
-func RenderUser(ctx context.Context, w http.ResponseWriter, user prototypes.User) (err error) {
+func RenderUser(ctx context.Context, w http.ResponseWriter, user *prototypes.User) (err error) {
 	userView := BuildUserView(user)
 	err = Render(ctx, w, userView)
 	return

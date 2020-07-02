@@ -21,8 +21,8 @@ func (ps *FakePostService) FetchDetail(ctx context.Context, id int) (post protot
 }
 
 // FetchList ...
-func (ps *FakePostService) FetchList(ctx context.Context, limit int, offset int) (posts []prototypes.Post, err error) {
-	posts = []prototypes.Post{}
+func (ps *FakePostService) FetchList(ctx context.Context, limit int, offset int) (posts []*prototypes.Post, err error) {
+	posts = []*prototypes.Post{}
 	return
 }
 
