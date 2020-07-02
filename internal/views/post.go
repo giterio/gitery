@@ -25,7 +25,7 @@ func BuildPostView(post prototypes.Post) (postView PostView) {
 	if post.Comments != nil {
 		comments := []CommentView{}
 		for _, comment := range post.Comments {
-			commentView := BuildCommentView(comment)
+			commentView := BuildCommentView(*comment)
 			comments = append(comments, commentView)
 		}
 		postView.Comments = comments

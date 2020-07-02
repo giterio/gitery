@@ -16,9 +16,9 @@ type Post struct {
 	UpdatedAt time.Time `json:"-"` // reconstruct in PostView
 	IsDeleted bool      `json:"isDeleted"`
 	// Linked data
-	Author   *User     `json:"-"` // reconstruct in PostView
-	Tags     []Tag     `json:"tags,omitempty"`
-	Comments []Comment `json:"-"` // reconstruct in PostView
+	Author   *User      `json:"-"` // reconstruct in PostView
+	Tags     []*Tag     `json:"tags,omitempty"`
+	Comments []*Comment `json:"-"` // reconstruct in PostView
 }
 
 // PostService ...

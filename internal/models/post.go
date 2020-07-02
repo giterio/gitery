@@ -72,7 +72,7 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post prototypes
 	}
 	defer tagRows.Close()
 
-	post.Tags = []prototypes.Tag{}
+	post.Tags = []*prototypes.Tag{}
 	// Assemble tags with post structure
 	for tagRows.Next() {
 		tag := prototypes.Tag{}
@@ -80,14 +80,15 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post prototypes
 			err = TransactionError(ctx, err)
 			return
 		}
-		post.Tags = append(post.Tags, tag)
+		post.Tags = append(post.Tags, &tag)
 	}
 
 	// query comments related to the post
 	commentRows, err := txn.QueryContext(ctx, `
-		SELECT id, content, user_id, created_at, updated_at
+		SELECT id, content, user_id, parent_id, is_deleted, created_at, updated_at
 		FROM comments
-		WHERE post_id =$1
+		WHERE post_id = $1
+		ORDER BY posts.created_at ASC
 		`, id)
 	if err != nil {
 		err = TransactionError(ctx, err)
@@ -95,16 +96,39 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post prototypes
 	}
 	defer commentRows.Close()
 
-	post.Comments = []prototypes.Comment{}
+	commentList := []*prototypes.Comment{}
+	commentMap := map[int]*prototypes.Comment{}
 	// Assemble comments with post structure
 	for commentRows.Next() {
 		comment := prototypes.Comment{PostID: &id}
-		err = commentRows.Scan(&comment.ID, &comment.Content, &comment.UserID, &comment.CreatedAt, &comment.UpdatedAt)
+		err = commentRows.Scan(
+			&comment.ID,
+			&comment.Content,
+			&comment.UserID,
+			&comment.ParentID,
+			&comment.IsDeleted,
+			&comment.CreatedAt,
+			&comment.UpdatedAt)
 		if err != nil {
 			err = TransactionError(ctx, err)
 			return
 		}
-		post.Comments = append(post.Comments, comment)
+		commentMap[*comment.ID] = &comment
+		commentList = append(commentList, &comment)
+	}
+
+	for _, v := range commentList {
+		c := commentMap[*v.ParentID]
+		if c != nil {
+			c.Comments = append(c.Comments, v)
+		}
+	}
+
+	post.Comments = []*prototypes.Comment{}
+	for _, v := range commentMap {
+		if v.ParentID == nil {
+			post.Comments = append(post.Comments, v)
+		}
 	}
 
 	if err = txn.Commit(); err != nil {
@@ -145,7 +169,7 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (po
 
 	// fill the posts into list
 	for postRows.Next() {
-		post := prototypes.Post{Comments: []prototypes.Comment{}, Tags: []prototypes.Tag{}, Author: &prototypes.User{}}
+		post := prototypes.Post{Comments: []*prototypes.Comment{}, Tags: []*prototypes.Tag{}, Author: &prototypes.User{}}
 		err = postRows.Scan(&post.ID, &post.Title, &post.UserID, &post.CreatedAt, &post.UpdatedAt,
 			&post.Author.ID, &post.Author.Email, &post.Author.Nickname, &post.Author.CreatedAt, &post.Author.UpdatedAt)
 		if err != nil {
@@ -174,7 +198,7 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (po
 			return
 		}
 		post := postMap[postID]
-		post.Tags = append(post.Tags, tag)
+		post.Tags = append(post.Tags, &tag)
 	}
 
 	// convert postMap to post list
@@ -206,7 +230,7 @@ func (ps *PostService) Create(ctx context.Context, post *prototypes.Post) (err e
 		err = HandleDatabaseQueryError(ctx, err)
 		return
 	}
-	post.Comments = []prototypes.Comment{}
+	post.Comments = []*prototypes.Comment{}
 	return
 }
 

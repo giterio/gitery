@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
@@ -29,7 +30,7 @@ func main() {
 	// init project configuration
 	appConfig, err := configs.Init(configs.EnvType(env))
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	// connect to the Db
 	dbConfig := appConfig.Database
@@ -37,7 +38,7 @@ func main() {
 		dbConfig.Host, dbConfig.Port, dbConfig.User, dbConfig.Password, dbConfig.Name)
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	// init root handler with sub-handlers
 	rootHandler := &controllers.RootHandler{

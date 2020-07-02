@@ -120,7 +120,7 @@ func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []prototyp
 
 	// fill the posts into postMap using post ID as the key
 	for postRows.Next() {
-		post := prototypes.Post{UserID: &id, Comments: []prototypes.Comment{}, Tags: []prototypes.Tag{}}
+		post := prototypes.Post{UserID: &id, Comments: []*prototypes.Comment{}, Tags: []*prototypes.Tag{}}
 		err = postRows.Scan(&post.ID, &post.Title, &post.Content, &post.CreatedAt, &post.UpdatedAt)
 		if err != nil {
 			return
@@ -148,7 +148,7 @@ func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []prototyp
 			return
 		}
 		post := postMap[postID]
-		post.Tags = append(post.Tags, tag)
+		post.Tags = append(post.Tags, &tag)
 	}
 
 	// query all the comments related to the posts
@@ -173,7 +173,7 @@ func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []prototyp
 			return
 		}
 		post := postMap[*comment.PostID]
-		post.Comments = append(post.Comments, comment)
+		post.Comments = append(post.Comments, &comment)
 	}
 
 	// convert postMap to post list
