@@ -24,7 +24,7 @@ type User struct {
 
 // UserService ...
 type UserService interface {
-	Fetch(ctx context.Context, id int) (user User, err error)
+	Fetch(ctx context.Context, id int) (user *User, err error)
 	Create(ctx context.Context, user *User) (err error)
 	Update(ctx context.Context, user *User) (err error)
 	Delete(ctx context.Context, login *Login) (err error)

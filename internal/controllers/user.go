@@ -93,7 +93,7 @@ func (h *UserHandler) handleGet(w http.ResponseWriter, r *http.Request) (err err
 	if err != nil {
 		return
 	}
-	err = views.RenderUser(ctx, w, &user)
+	err = views.RenderUser(ctx, w, user)
 	return
 }
 
@@ -162,11 +162,11 @@ func (h *UserHandler) handlePatch(w http.ResponseWriter, r *http.Request) (err e
 		return
 	}
 	// update current user record in DB
-	err = h.Model.Update(ctx, &user)
+	err = h.Model.Update(ctx, user)
 	if err != nil {
 		return
 	}
-	err = views.RenderUser(ctx, w, &user)
+	err = views.RenderUser(ctx, w, user)
 	return
 }
 

@@ -69,7 +69,7 @@ func (h *PostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err err
 	default:
 		// pre-declaration to avoid shadowing of variable err
 		var id int
-		var post prototypes.Post
+		var post *prototypes.Post
 		id, err = strconv.Atoi(resource)
 		if err != nil {
 			err = models.BadRequestError(ctx, err)
@@ -80,7 +80,7 @@ func (h *PostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err err
 		if err != nil {
 			return
 		}
-		err = views.RenderPost(ctx, w, &post)
+		err = views.RenderPost(ctx, w, post)
 		return
 	}
 }
@@ -146,11 +146,11 @@ func (h *PostHandler) handlePatch(w http.ResponseWriter, r *http.Request) (err e
 		return
 	}
 	// update post in DB
-	err = h.Model.Update(ctx, &post)
+	err = h.Model.Update(ctx, post)
 	if err != nil {
 		return
 	}
-	err = views.RenderPost(ctx, w, &post)
+	err = views.RenderPost(ctx, w, post)
 	return
 }
 

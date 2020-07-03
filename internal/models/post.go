@@ -14,8 +14,8 @@ type PostService struct {
 }
 
 // Fetch ...
-func (ps *PostService) Fetch(ctx context.Context, id int) (post prototypes.Post, err error) {
-	post = prototypes.Post{}
+func (ps *PostService) Fetch(ctx context.Context, id int) (post *prototypes.Post, err error) {
+	post = &prototypes.Post{}
 	err = ps.DB.QueryRowContext(ctx, `
 		SELECT id, title, content, user_id, created_at, updated_at
 		FROM posts
@@ -28,7 +28,7 @@ func (ps *PostService) Fetch(ctx context.Context, id int) (post prototypes.Post,
 }
 
 // FetchDetail is to fetch single post detail
-func (ps *PostService) FetchDetail(ctx context.Context, id int) (post prototypes.Post, err error) {
+func (ps *PostService) FetchDetail(ctx context.Context, id int) (post *prototypes.Post, err error) {
 	txn, err := ps.DB.Begin()
 	if err != nil {
 		err = ServerError(ctx, err)
@@ -36,7 +36,7 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post prototypes
 	}
 
 	// query post data
-	post = prototypes.Post{}
+	post = &prototypes.Post{}
 	err = txn.QueryRowContext(ctx, `
 		SELECT id, title, content, user_id, created_at, updated_at
 		FROM posts

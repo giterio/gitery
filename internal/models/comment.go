@@ -14,8 +14,8 @@ type CommentService struct {
 }
 
 // Fetch ...
-func (cs *CommentService) Fetch(ctx context.Context, id int) (comment prototypes.Comment, err error) {
-	comment = prototypes.Comment{}
+func (cs *CommentService) Fetch(ctx context.Context, id int) (comment *prototypes.Comment, err error) {
+	comment = &prototypes.Comment{}
 	err = cs.DB.QueryRowContext(ctx, `
 		SELECT id, content, user_id, post_id, parent_id, is_deleted, created_at, updated_at
 		FROM comments
@@ -36,7 +36,7 @@ func (cs *CommentService) Fetch(ctx context.Context, id int) (comment prototypes
 }
 
 // FetchDetail is to fetch single comment detail
-func (cs *CommentService) FetchDetail(ctx context.Context, id int) (comment prototypes.Comment, err error) {
+func (cs *CommentService) FetchDetail(ctx context.Context, id int) (comment *prototypes.Comment, err error) {
 	txn, err := cs.DB.Begin()
 	if err != nil {
 		err = ServerError(ctx, err)
@@ -44,7 +44,7 @@ func (cs *CommentService) FetchDetail(ctx context.Context, id int) (comment prot
 	}
 
 	// query comment from DB
-	comment = prototypes.Comment{}
+	comment = &prototypes.Comment{}
 	err = txn.QueryRowContext(ctx, `
 		SELECT id, content, user_id, post_id, parent_id, is_deleted, created_at, updated_at
 		FROM comments

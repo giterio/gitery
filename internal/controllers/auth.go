@@ -33,7 +33,7 @@ func (h *AuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // handle login event
 func (h *AuthHandler) handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
-	login := prototypes.Login{}
+	login := &prototypes.Login{}
 	err = json.NewDecoder(r.Body).Decode(&login)
 	if err != nil {
 		err = models.BadRequestError(ctx, err)
@@ -43,6 +43,6 @@ func (h *AuthHandler) handlePost(w http.ResponseWriter, r *http.Request) (err er
 	if err != nil {
 		return
 	}
-	err = views.RenderAuth(ctx, w, token, &user)
+	err = views.RenderAuth(ctx, w, token, user)
 	return
 }

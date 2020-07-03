@@ -23,8 +23,8 @@ type Post struct {
 
 // PostService ...
 type PostService interface {
-	Fetch(ctx context.Context, id int) (post Post, err error)
-	FetchDetail(ctx context.Context, id int) (post Post, err error)
+	Fetch(ctx context.Context, id int) (post *Post, err error)
+	FetchDetail(ctx context.Context, id int) (post *Post, err error)
 	FetchList(ctx context.Context, limit int, offset int) (posts []*Post, err error)
 	Create(ctx context.Context, post *Post) (err error)
 	Update(ctx context.Context, post *Post) (err error)

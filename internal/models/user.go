@@ -16,8 +16,8 @@ type UserService struct {
 }
 
 // Fetch user information
-func (us *UserService) Fetch(ctx context.Context, id int) (user prototypes.User, err error) {
-	user = prototypes.User{}
+func (us *UserService) Fetch(ctx context.Context, id int) (user *prototypes.User, err error) {
+	user = &prototypes.User{}
 	err = us.DB.QueryRowContext(ctx, `
 		SELECT id, email, hashed_pwd, nickname, created_at, updated_at
 		FROM users

@@ -9,14 +9,14 @@ import (
 type FakePostService struct{}
 
 // Fetch ...
-func (ps *FakePostService) Fetch(ctx context.Context, id int) (post prototypes.Post, err error) {
-	post = prototypes.Post{ID: &id}
+func (ps *FakePostService) Fetch(ctx context.Context, id int) (post *prototypes.Post, err error) {
+	post = &prototypes.Post{ID: &id}
 	return
 }
 
 // FetchDetail ...
-func (ps *FakePostService) FetchDetail(ctx context.Context, id int) (post prototypes.Post, err error) {
-	post = prototypes.Post{ID: &id}
+func (ps *FakePostService) FetchDetail(ctx context.Context, id int) (post *prototypes.Post, err error) {
+	post = &prototypes.Post{ID: &id}
 	return
 }
 

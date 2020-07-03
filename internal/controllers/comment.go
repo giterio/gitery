@@ -96,11 +96,11 @@ func (h *CommentHandler) handlePatch(w http.ResponseWriter, r *http.Request) (er
 		return
 	}
 	// update comment in DB
-	err = h.Model.Update(ctx, &comment)
+	err = h.Model.Update(ctx, comment)
 	if err != nil {
 		return
 	}
-	err = views.RenderComment(ctx, w, &comment)
+	err = views.RenderComment(ctx, w, comment)
 	return
 }
 

@@ -14,7 +14,7 @@ type TagService struct {
 }
 
 // Assign is to add tag for post
-func (ts *TagService) Assign(ctx context.Context, userID int, postID int, tagName string) (tag prototypes.Tag, err error) {
+func (ts *TagService) Assign(ctx context.Context, userID int, postID int, tagName string) (tag *prototypes.Tag, err error) {
 	txn, err := ts.DB.Begin()
 	if err != nil {
 		err = ServerError(ctx, err)
@@ -35,7 +35,7 @@ func (ts *TagService) Assign(ctx context.Context, userID int, postID int, tagNam
 	}
 
 	// upsert tag
-	tag = prototypes.Tag{}
+	tag = &prototypes.Tag{}
 	err = txn.QueryRowContext(ctx, `
 	 	WITH ins AS (
 		 	INSERT INTO tags (name) VALUES ($1)
