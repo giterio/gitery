@@ -98,7 +98,8 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post *prototype
 
 	commentList := []*prototypes.Comment{}
 	commentMap := map[int]*prototypes.Comment{}
-	// Assemble comments with post structure
+
+	// Assemble commentList and commentMap
 	for commentRows.Next() {
 		comment := prototypes.Comment{PostID: &id}
 		err = commentRows.Scan(
@@ -117,6 +118,7 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post *prototype
 		commentList = append(commentList, &comment)
 	}
 
+	// convert commentMap to tree-like structure
 	for _, v := range commentList {
 		if v.ParentID != nil {
 			c := commentMap[*v.ParentID]
@@ -126,6 +128,7 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post *prototype
 		}
 	}
 
+	// filter redundant 1-deep node and format as list
 	post.Comments = []*prototypes.Comment{}
 	for _, v := range commentMap {
 		if v.ParentID == nil {
