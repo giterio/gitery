@@ -85,9 +85,10 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post *prototype
 
 	// query comments related to the post
 	commentRows, err := txn.QueryContext(ctx, `
-		SELECT id, content, user_id, parent_id, is_deleted, created_at, updated_at
-		FROM comments
-		WHERE post_id = $1
+		SELECT comments.id, comments.content, comments.user_id, comments.parent_id, comments.created_at, comments.updated_at,
+		users.id, users.email, users.nickname, users.created_at, users.updated_at
+		FROM comments INNER JOIN users
+		ON comments.post_id = $1 AND comments.user_id = users.id AND comments.is_deleted = false
 		ORDER BY comments.created_at ASC
 		`, id)
 	if err != nil {
@@ -101,15 +102,20 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post *prototype
 
 	// Assemble commentList and commentMap
 	for commentRows.Next() {
-		comment := prototypes.Comment{PostID: &id}
+		comment := prototypes.Comment{PostID: &id, Author: &prototypes.User{}}
 		err = commentRows.Scan(
 			&comment.ID,
 			&comment.Content,
 			&comment.UserID,
 			&comment.ParentID,
-			&comment.IsDeleted,
 			&comment.CreatedAt,
-			&comment.UpdatedAt)
+			&comment.UpdatedAt,
+			&comment.Author.ID,
+			&comment.Author.Email,
+			&comment.Author.Nickname,
+			&comment.Author.CreatedAt,
+			&comment.Author.UpdatedAt,
+		)
 		if err != nil {
 			err = TransactionError(ctx, err)
 			return
@@ -161,7 +167,7 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (po
 	// query all the posts of the user
 	postRows, err := txn.QueryContext(ctx, `
 		SELECT posts.id, posts.title, posts.user_id, posts.created_at, posts.updated_at,
-		users.id AS user_id, users.email, users.nickname, users.created_at AS user_created_at, users.updated_at AS user_updated_at
+		users.id, users.email, users.nickname, users.created_at, users.updated_at
 		FROM posts LEFT JOIN users
 		ON posts.user_id = users.id AND posts.is_deleted = false
 		ORDER BY posts.created_at DESC

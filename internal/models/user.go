@@ -154,7 +154,7 @@ func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []*prototy
 	// query all the comments related to the posts
 	commentRows, err := txn.QueryContext(ctx, `
 		SELECT comments.id, comments.content, comments.post_id, comments.user_id, comments.created_at, comments.updated_at,
-		users.id AS user_id, users.email, users.nickname, users.created_at AS user_created_at, users.updated_at AS user_updated_at
+		users.id, users.email, users.nickname, users.created_at, users.updated_at
 		FROM comments, users
 		WHERE users.id = comments.user_id AND comments.post_id IN (SELECT id FROM posts WHERE user_id = $1)
 		`, id)
