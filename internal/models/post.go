@@ -130,9 +130,9 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post *prototype
 
 	// filter redundant 1-deep node and format as list
 	post.Comments = []*prototypes.Comment{}
-	for _, v := range commentMap {
+	for _, v := range commentList {
 		if v.ParentID == nil {
-			post.Comments = append(post.Comments, v)
+			post.Comments = append(post.Comments, commentMap[*v.ID])
 		}
 	}
 
@@ -156,6 +156,7 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (po
 
 	// postMap is used to assemble posts and comments efficiently
 	postMap := map[int]*prototypes.Post{}
+	postList := []*prototypes.Post{}
 
 	// query all the posts of the user
 	postRows, err := txn.QueryContext(ctx, `
@@ -163,7 +164,7 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (po
 		users.id AS user_id, users.email, users.nickname, users.created_at AS user_created_at, users.updated_at AS user_updated_at
 		FROM posts LEFT JOIN users
 		ON posts.user_id = users.id AND posts.is_deleted = false
-		ORDER BY posts.updated_at DESC
+		ORDER BY posts.created_at DESC
 		LIMIT $1 OFFSET $2
 		`, limit, offset)
 	if err != nil {
@@ -180,6 +181,7 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (po
 		if err != nil {
 			return
 		}
+		postList = append(postList, &post)
 		postMap[*post.ID] = &post
 	}
 
@@ -208,8 +210,8 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (po
 
 	// convert postMap to post list
 	posts = []*prototypes.Post{}
-	for _, post := range postMap {
-		posts = append(posts, post)
+	for _, post := range postList {
+		posts = append(posts, postMap[*post.ID])
 	}
 
 	if err = txn.Commit(); err != nil {
