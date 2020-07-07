@@ -91,10 +91,10 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post *prototype
 	go func() {
 		// query comments related to the post
 		commentRows, err := ps.DB.QueryContext(ctx, `
-		SELECT comments.id, comments.content, comments.user_id, comments.parent_id, comments.created_at, comments.updated_at,
+		SELECT comments.id, comments.content, comments.user_id, comments.parent_id, comments.is_deleted, comments.created_at, comments.updated_at,
 		users.id, users.email, users.nickname, users.created_at, users.updated_at
 		FROM comments INNER JOIN users
-		ON comments.post_id = $1 AND comments.user_id = users.id AND comments.is_deleted = false
+		ON comments.post_id = $1 AND comments.user_id = users.id
 		ORDER BY comments.created_at ASC
 		`, id)
 		if err != nil {
@@ -114,6 +114,7 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post *prototype
 				&comment.Content,
 				&comment.UserID,
 				&comment.ParentID,
+				&comment.IsDeleted,
 				&comment.CreatedAt,
 				&comment.UpdatedAt,
 				&comment.Author.ID,

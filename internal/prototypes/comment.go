@@ -14,7 +14,7 @@ type Comment struct {
 	ParentID  *int       `json:"parentID,omitempty"`
 	CreatedAt time.Time  `json:"-"` // reconstruct in CommentView
 	UpdatedAt time.Time  `json:"-"` // reconstruct in CommentView
-	IsDeleted bool       `json:"-"`
+	IsDeleted bool       `json:"isDeleted"`
 	Author    *User      `json:"-"` // reconstruct in PostView
 	Comments  []*Comment `json:"-"` // reconstruct in PostView
 }
