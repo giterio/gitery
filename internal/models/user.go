@@ -148,31 +148,6 @@ func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []*prototy
 		post.Tags = append(post.Tags, &tag)
 	}
 
-	// query all the comments related to the posts
-	commentRows, err := ups.DB.QueryContext(ctx, `
-		SELECT comments.id, comments.content, comments.post_id, comments.user_id, comments.created_at, comments.updated_at,
-		users.id, users.email, users.nickname, users.created_at, users.updated_at
-		FROM comments, users
-		WHERE users.id = comments.user_id AND comments.post_id IN (SELECT id FROM posts WHERE user_id = $1)
-		`, id)
-	if err != nil {
-		err = TransactionError(ctx, err)
-		return
-	}
-	defer commentRows.Close()
-
-	// Assemble comments with post structure
-	for commentRows.Next() {
-		comment := prototypes.Comment{Author: &prototypes.User{}}
-		err = commentRows.Scan(&comment.ID, &comment.Content, &comment.PostID, &comment.UserID, &comment.CreatedAt, &comment.UpdatedAt,
-			&comment.Author.ID, &comment.Author.Email, &comment.Author.Nickname, &comment.Author.CreatedAt, &comment.Author.UpdatedAt)
-		if err != nil {
-			return
-		}
-		post := postMap[*comment.PostID]
-		post.Comments = append(post.Comments, &comment)
-	}
-
 	// convert postMap to post list
 	posts = []*prototypes.Post{}
 	for _, post := range postList {

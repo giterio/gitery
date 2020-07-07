@@ -29,112 +29,142 @@ func (ps *PostService) Fetch(ctx context.Context, id int) (post *prototypes.Post
 
 // FetchDetail is to fetch single post detail
 func (ps *PostService) FetchDetail(ctx context.Context, id int) (post *prototypes.Post, err error) {
-	// query post data
-	post = &prototypes.Post{}
-	err = ps.DB.QueryRowContext(ctx, `
+	postCh := make(chan *prototypes.Post)
+	tagsCh := make(chan []*prototypes.Tag)
+	commentsCh := make(chan []*prototypes.Comment)
+	errCh := make(chan error)
+
+	go func() {
+		// query post
+		post = &prototypes.Post{}
+		err = ps.DB.QueryRowContext(ctx, `
 		SELECT id, title, content, user_id, created_at, updated_at
 		FROM posts
 		WHERE id = $1
 		`, id).Scan(&post.ID, &post.Title, &post.Content, &post.UserID, &post.CreatedAt, &post.UpdatedAt)
-	if err != nil {
-		err = HandleDatabaseQueryError(ctx, err)
-		return
-	}
+		if err != nil {
+			errCh <- HandleDatabaseQueryError(ctx, err)
+			return
+		}
 
-	// query user information
-	user := prototypes.User{}
-	err = ps.DB.QueryRowContext(ctx, `
+		// query user information
+		user := prototypes.User{}
+		err = ps.DB.QueryRowContext(ctx, `
 		SELECT id, email, hashed_pwd, nickname, created_at, updated_at
 		FROM users
 		WHERE id = $1
 		`, *post.UserID).Scan(&user.ID, &user.Email, &user.HashedPwd, &user.Nickname, &user.CreatedAt, &user.UpdatedAt)
-	if err != nil {
-		err = HandleDatabaseQueryError(ctx, err)
-		return
-	}
-	post.Author = &user
+		if err != nil {
+			errCh <- HandleDatabaseQueryError(ctx, err)
+			return
+		}
+		post.Author = &user
+		postCh <- post
+	}()
 
-	// query tags related to the post
-	tagRows, err := ps.DB.QueryContext(ctx, `
+	go func() {
+		// query tags related to the post
+		tagRows, err := ps.DB.QueryContext(ctx, `
 		SELECT id, name
 		FROM tags
 		WHERE id IN (SELECT tag_id FROM post_tag WHERE post_id = $1)
 		`, id)
-	if err != nil {
-		err = TransactionError(ctx, err)
-		return
-	}
-	defer tagRows.Close()
-
-	post.Tags = []*prototypes.Tag{}
-	// Assemble tags with post structure
-	for tagRows.Next() {
-		tag := prototypes.Tag{}
-		if err = tagRows.Scan(&tag.ID, &tag.Name); err != nil {
-			err = TransactionError(ctx, err)
+		if err != nil {
+			errCh <- TransactionError(ctx, err)
 			return
 		}
-		post.Tags = append(post.Tags, &tag)
-	}
+		defer tagRows.Close()
 
-	// query comments related to the post
-	commentRows, err := ps.DB.QueryContext(ctx, `
+		tags := []*prototypes.Tag{}
+		// Assemble tags with post structure
+		for tagRows.Next() {
+			tag := prototypes.Tag{}
+			if err = tagRows.Scan(&tag.ID, &tag.Name); err != nil {
+				errCh <- TransactionError(ctx, err)
+				return
+			}
+			tags = append(tags, &tag)
+		}
+		tagsCh <- tags
+	}()
+
+	go func() {
+		// query comments related to the post
+		commentRows, err := ps.DB.QueryContext(ctx, `
 		SELECT comments.id, comments.content, comments.user_id, comments.parent_id, comments.created_at, comments.updated_at,
 		users.id, users.email, users.nickname, users.created_at, users.updated_at
 		FROM comments INNER JOIN users
 		ON comments.post_id = $1 AND comments.user_id = users.id AND comments.is_deleted = false
 		ORDER BY comments.created_at ASC
 		`, id)
-	if err != nil {
-		err = TransactionError(ctx, err)
-		return
-	}
-	defer commentRows.Close()
-
-	commentList := []*prototypes.Comment{}
-	commentMap := map[int]*prototypes.Comment{}
-
-	// Assemble commentList and commentMap
-	for commentRows.Next() {
-		comment := prototypes.Comment{PostID: &id, Author: &prototypes.User{}}
-		err = commentRows.Scan(
-			&comment.ID,
-			&comment.Content,
-			&comment.UserID,
-			&comment.ParentID,
-			&comment.CreatedAt,
-			&comment.UpdatedAt,
-			&comment.Author.ID,
-			&comment.Author.Email,
-			&comment.Author.Nickname,
-			&comment.Author.CreatedAt,
-			&comment.Author.UpdatedAt,
-		)
 		if err != nil {
-			err = TransactionError(ctx, err)
+			errCh <- TransactionError(ctx, err)
 			return
 		}
-		commentMap[*comment.ID] = &comment
-		commentList = append(commentList, &comment)
-	}
+		defer commentRows.Close()
 
-	// convert commentMap to tree-like structure
-	for _, v := range commentList {
-		if v.ParentID != nil {
-			c := commentMap[*v.ParentID]
-			if c != nil {
-				c.Comments = append(c.Comments, v)
+		commentList := []*prototypes.Comment{}
+		commentMap := map[int]*prototypes.Comment{}
+
+		// Assemble commentList and commentMap
+		for commentRows.Next() {
+			comment := prototypes.Comment{PostID: &id, Author: &prototypes.User{}}
+			err = commentRows.Scan(
+				&comment.ID,
+				&comment.Content,
+				&comment.UserID,
+				&comment.ParentID,
+				&comment.CreatedAt,
+				&comment.UpdatedAt,
+				&comment.Author.ID,
+				&comment.Author.Email,
+				&comment.Author.Nickname,
+				&comment.Author.CreatedAt,
+				&comment.Author.UpdatedAt,
+			)
+			if err != nil {
+				errCh <- TransactionError(ctx, err)
+				return
+			}
+			commentMap[*comment.ID] = &comment
+			commentList = append(commentList, &comment)
+		}
+
+		// convert commentMap to tree-like structure
+		for _, comment := range commentList {
+			if comment.ParentID != nil {
+				c := commentMap[*comment.ParentID]
+				if c != nil {
+					c.Comments = append(c.Comments, comment)
+				}
 			}
 		}
-	}
 
-	// filter redundant 1-deep node and format as list
-	post.Comments = []*prototypes.Comment{}
-	for _, comment := range commentList {
-		if comment.ParentID == nil {
-			post.Comments = append(post.Comments, commentMap[*comment.ID])
+		// filter redundant 1-deep node and format as list
+		comments := []*prototypes.Comment{}
+		for _, comment := range commentList {
+			if comment.ParentID == nil {
+				comments = append(comments, commentMap[*comment.ID])
+			}
+		}
+		commentsCh <- comments
+	}()
+
+	var (
+		tags     []*prototypes.Tag
+		comments []*prototypes.Comment
+	)
+	for i := 0; i < 3; i++ {
+		select {
+		case err = <-errCh:
+			return
+		case post = <-postCh:
+		case tags = <-tagsCh:
+		case comments = <-commentsCh:
 		}
 	}
+	post.Comments = comments
+	post.Tags = tags
 	return
 }
 
