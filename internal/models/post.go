@@ -150,6 +150,7 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post *prototype
 		commentsCh <- comments
 	}()
 
+	// receive data from goroutin via channels
 	var (
 		tags     []*prototypes.Tag
 		comments []*prototypes.Comment
