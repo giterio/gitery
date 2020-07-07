@@ -29,15 +29,9 @@ func (ps *PostService) Fetch(ctx context.Context, id int) (post *prototypes.Post
 
 // FetchDetail is to fetch single post detail
 func (ps *PostService) FetchDetail(ctx context.Context, id int) (post *prototypes.Post, err error) {
-	txn, err := ps.DB.Begin()
-	if err != nil {
-		err = ServerError(ctx, err)
-		return
-	}
-
 	// query post data
 	post = &prototypes.Post{}
-	err = txn.QueryRowContext(ctx, `
+	err = ps.DB.QueryRowContext(ctx, `
 		SELECT id, title, content, user_id, created_at, updated_at
 		FROM posts
 		WHERE id = $1
@@ -49,7 +43,7 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post *prototype
 
 	// query user information
 	user := prototypes.User{}
-	err = txn.QueryRowContext(ctx, `
+	err = ps.DB.QueryRowContext(ctx, `
 		SELECT id, email, hashed_pwd, nickname, created_at, updated_at
 		FROM users
 		WHERE id = $1
@@ -61,7 +55,7 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post *prototype
 	post.Author = &user
 
 	// query tags related to the post
-	tagRows, err := txn.QueryContext(ctx, `
+	tagRows, err := ps.DB.QueryContext(ctx, `
 		SELECT id, name
 		FROM tags
 		WHERE id IN (SELECT tag_id FROM post_tag WHERE post_id = $1)
@@ -84,7 +78,7 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post *prototype
 	}
 
 	// query comments related to the post
-	commentRows, err := txn.QueryContext(ctx, `
+	commentRows, err := ps.DB.QueryContext(ctx, `
 		SELECT comments.id, comments.content, comments.user_id, comments.parent_id, comments.created_at, comments.updated_at,
 		users.id, users.email, users.nickname, users.created_at, users.updated_at
 		FROM comments INNER JOIN users
@@ -136,14 +130,10 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post *prototype
 
 	// filter redundant 1-deep node and format as list
 	post.Comments = []*prototypes.Comment{}
-	for _, v := range commentList {
-		if v.ParentID == nil {
-			post.Comments = append(post.Comments, commentMap[*v.ID])
+	for _, comment := range commentList {
+		if comment.ParentID == nil {
+			post.Comments = append(post.Comments, commentMap[*comment.ID])
 		}
-	}
-
-	if err = txn.Commit(); err != nil {
-		err = TransactionError(ctx, err)
 	}
 	return
 }
@@ -154,18 +144,12 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (po
 		limit = 10
 	}
 
-	txn, err := ps.DB.Begin()
-	if err != nil {
-		err = ServerError(ctx, err)
-		return
-	}
-
 	// postMap is used to assemble posts and comments efficiently
 	postMap := map[int]*prototypes.Post{}
 	postList := []*prototypes.Post{}
 
 	// query all the posts of the user
-	postRows, err := txn.QueryContext(ctx, `
+	postRows, err := ps.DB.QueryContext(ctx, `
 		SELECT posts.id, posts.title, posts.user_id, posts.created_at, posts.updated_at,
 		users.id, users.email, users.nickname, users.created_at, users.updated_at
 		FROM posts LEFT JOIN users
@@ -192,7 +176,7 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (po
 	}
 
 	// query all the tags related to the posts
-	tagRows, err := txn.QueryContext(ctx, `
+	tagRows, err := ps.DB.QueryContext(ctx, `
 		SELECT tags.id, tags.name, post_tag.post_id
 		FROM tags INNER JOIN post_tag
 		ON tags.id = post_tag.tag_id AND post_tag.post_id IN (SELECT id FROM posts ORDER BY posts.updated_at DESC LIMIT $1 OFFSET $2)
@@ -218,10 +202,6 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (po
 	posts = []*prototypes.Post{}
 	for _, post := range postList {
 		posts = append(posts, postMap[*post.ID])
-	}
-
-	if err = txn.Commit(); err != nil {
-		err = TransactionError(ctx, err)
 	}
 	return
 }

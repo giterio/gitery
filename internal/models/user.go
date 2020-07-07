@@ -99,15 +99,11 @@ type UserPostService struct {
 
 // Fetch user's all posts
 func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []*prototypes.Post, err error) {
-	txn, err := ups.DB.Begin()
-	if err != nil {
-		err = ServerError(ctx, err)
-		return
-	}
 	// postMap is used to assemble posts and comments efficiently
 	postMap := map[int]*prototypes.Post{}
+	postList := []*prototypes.Post{}
 	// query all the posts of the user
-	postRows, err := txn.QueryContext(ctx, `
+	postRows, err := ups.DB.QueryContext(ctx, `
 		SELECT id, title, content, created_at, updated_at
 		FROM posts
 		WHERE user_id =$1
@@ -126,10 +122,11 @@ func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []*prototy
 			return
 		}
 		postMap[*post.ID] = &post
+		postList = append(postList, &post)
 	}
 
 	// query all the tags related to the posts
-	tagRows, err := txn.QueryContext(ctx, `
+	tagRows, err := ups.DB.QueryContext(ctx, `
 		SELECT tags.id, tags.name, post_tag.post_id
 		FROM tags INNER JOIN post_tag
 		ON tags.id = post_tag.tag_id AND post_tag.post_id IN (SELECT id FROM posts WHERE user_id =$1)
@@ -152,7 +149,7 @@ func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []*prototy
 	}
 
 	// query all the comments related to the posts
-	commentRows, err := txn.QueryContext(ctx, `
+	commentRows, err := ups.DB.QueryContext(ctx, `
 		SELECT comments.id, comments.content, comments.post_id, comments.user_id, comments.created_at, comments.updated_at,
 		users.id, users.email, users.nickname, users.created_at, users.updated_at
 		FROM comments, users
@@ -178,12 +175,8 @@ func (ups *UserPostService) Fetch(ctx context.Context, id int) (posts []*prototy
 
 	// convert postMap to post list
 	posts = []*prototypes.Post{}
-	for _, post := range postMap {
-		posts = append(posts, post)
-	}
-
-	if err = txn.Commit(); err != nil {
-		err = TransactionError(ctx, err)
+	for _, post := range postList {
+		posts = append(posts, postMap[*post.ID])
 	}
 	return
 }

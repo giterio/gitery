@@ -78,15 +78,9 @@ func (ts *TagService) Assign(ctx context.Context, userID int, postID int, tagNam
 
 // Remove is to remove tag from post
 func (ts *TagService) Remove(ctx context.Context, userID int, postID int, tagID int) (err error) {
-	txn, err := ts.DB.Begin()
-	if err != nil {
-		err = ServerError(ctx, err)
-		return
-	}
-
 	// check if user is author of the post
 	var isAuthor bool
-	err = txn.QueryRowContext(ctx, `
+	err = ts.DB.QueryRowContext(ctx, `
 		SELECT EXISTS (SELECT 1 FROM posts WHERE id = $1 AND user_id = $2)
 		`, postID, userID).Scan(&isAuthor)
 	if err != nil {
@@ -97,19 +91,12 @@ func (ts *TagService) Remove(ctx context.Context, userID int, postID int, tagID 
 		return
 	}
 
-	_, err = txn.ExecContext(ctx, `
+	_, err = ts.DB.ExecContext(ctx, `
 		DELETE FROM post_tag WHERE post_id = $1 AND tag_id = $2
 		`, postID, tagID)
 	if err != nil {
-		if rollbackErr := txn.Rollback(); rollbackErr != nil {
-			log.Fatalf("update drivers: unable to rollback: %v", rollbackErr)
-		}
 		err = TransactionError(ctx, err)
 		return
-	}
-
-	if err = txn.Commit(); err != nil {
-		err = TransactionError(ctx, err)
 	}
 	return
 }
