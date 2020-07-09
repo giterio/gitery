@@ -184,7 +184,7 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (po
 	postRows, err := ps.DB.QueryContext(ctx, `
 		SELECT posts.id, posts.title, posts.user_id, posts.created_at, posts.updated_at,
 		users.id, users.email, users.nickname, users.created_at, users.updated_at
-		FROM posts LEFT JOIN users
+		FROM posts INNER JOIN users
 		ON posts.user_id = users.id AND posts.is_deleted = false
 		ORDER BY posts.created_at DESC
 		LIMIT $1 OFFSET $2
