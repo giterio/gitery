@@ -1,10 +1,11 @@
 package console
 
-import "encoding/json"
+import (
+	"fmt"
+)
 
 // Log ...
 func Log(data interface{}) (err error) {
-	bytes, err := json.MarshalIndent(data, "", "\t")
-	println(string(bytes))
+	_, err = fmt.Printf("%+v\n", data)
 	return
 }
