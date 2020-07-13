@@ -122,7 +122,21 @@ func (cs *CommentService) Create(ctx context.Context, comment *prototypes.Commen
 		`, comment.Content, comment.UserID, comment.PostID, comment.ParentID).Scan(&comment.ID, &comment.CreatedAt, &comment.UpdatedAt)
 	if err != nil {
 		err = HandleDatabaseQueryError(ctx, err)
+		return
 	}
+
+	// query user information
+	user := prototypes.User{}
+	err = cs.DB.QueryRowContext(ctx, `
+		SELECT id, email, hashed_pwd, nickname, created_at, updated_at
+		FROM users
+		WHERE id = $1
+		`, *comment.UserID).Scan(&user.ID, &user.Email, &user.HashedPwd, &user.Nickname, &user.CreatedAt, &user.UpdatedAt)
+	if err != nil {
+		err = HandleDatabaseQueryError(ctx, err)
+		return
+	}
+	comment.Author = &user
 	return
 }
 
