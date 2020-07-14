@@ -30,6 +30,6 @@ type JwtPayload struct {
 
 // AuthService ...
 type AuthService interface {
-	Login(ctx context.Context, login Login) (token string, user User, err error)
-	Verify(ctx context.Context, token string) (payload JwtPayload, err error)
+	Login(ctx context.Context, login *Login) (token string, user *User, err error)
+	Verify(ctx context.Context, token string) (payload *JwtPayload, err error)
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
@@ -29,7 +30,7 @@ func main() {
 	// init project configuration
 	appConfig, err := configs.Init(configs.EnvType(env))
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	// connect to the Db
 	dbConfig := appConfig.Database
@@ -37,18 +38,28 @@ func main() {
 		dbConfig.Host, dbConfig.Port, dbConfig.User, dbConfig.Password, dbConfig.Name)
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	// init root handler with sub-handlers
 	rootHandler := &controllers.RootHandler{
-		AuthHandler: &controllers.AuthHandler{Model: &models.AuthService{DB: db, JwtSecret: appConfig.JwtSecret}},
-		UserHandler: &controllers.UserHandler{
-			Model:           &models.UserService{DB: db},
-			UserPostHandler: &controllers.UserPostHandler{Model: &models.UserPostService{DB: db}},
+		AuthHandler: &controllers.AuthHandler{
+			Model: &models.AuthService{DB: db, JwtSecret: appConfig.JwtSecret},
 		},
-		PostHandler:    &controllers.PostHandler{Model: &models.PostService{DB: db}},
-		CommentHandler: &controllers.CommentHandler{Model: &models.CommentService{DB: db}},
-		TagHandler:     &controllers.TagHandler{Model: &models.TagService{DB: db}},
+		UserHandler: &controllers.UserHandler{
+			Model: &models.UserService{DB: db},
+			UserPostHandler: &controllers.UserPostHandler{
+				Model: &models.UserPostService{DB: db},
+			},
+		},
+		PostHandler: &controllers.PostHandler{
+			Model: &models.PostService{DB: db},
+		},
+		CommentHandler: &controllers.CommentHandler{
+			Model: &models.CommentService{DB: db},
+		},
+		TagHandler: &controllers.TagHandler{
+			Model: &models.TagService{DB: db},
+		},
 	}
 	// config the server
 	server := http.Server{

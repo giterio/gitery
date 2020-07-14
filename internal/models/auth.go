@@ -18,11 +18,14 @@ type AuthService struct {
 }
 
 // Login ...
-func (as *AuthService) Login(ctx context.Context, login prototypes.Login) (token string, user prototypes.User, err error) {
-	user = prototypes.User{}
+func (as *AuthService) Login(ctx context.Context, login *prototypes.Login) (token string, user *prototypes.User, err error) {
+	user = &prototypes.User{}
 	// retrieve user matched given email
-	err = as.DB.QueryRowContext(ctx, "SELECT id, email, hashed_pwd, nickname, created_at, updated_at FROM users WHERE email = $1", login.Email).Scan(
-		&user.ID, &user.Email, &user.HashedPwd, &user.Nickname, &user.CreatedAt, &user.UpdatedAt)
+	err = as.DB.QueryRowContext(ctx, `
+		SELECT id, email, hashed_pwd, nickname, created_at, updated_at
+		FROM users
+		WHERE email = $1
+		`, login.Email).Scan(&user.ID, &user.Email, &user.HashedPwd, &user.Nickname, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			err = IdentityNonExistError(ctx, err)
@@ -52,8 +55,8 @@ func (as *AuthService) Login(ctx context.Context, login prototypes.Login) (token
 }
 
 // Verify if token is valid
-func (as *AuthService) Verify(ctx context.Context, token string) (payload prototypes.JwtPayload, err error) {
-	payload = prototypes.JwtPayload{}
+func (as *AuthService) Verify(ctx context.Context, token string) (payload *prototypes.JwtPayload, err error) {
+	payload = &prototypes.JwtPayload{}
 	// retrieve public payload data from token
 	err = jwt.Decode(token, as.JwtSecret, &payload)
 	if err != nil {

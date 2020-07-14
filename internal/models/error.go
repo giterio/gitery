@@ -22,7 +22,7 @@ type Error struct {
 
 // Error ...
 func (sessionError Error) Error() string {
-	str, err := json.MarshalIndent(sessionError, "", "\t\t")
+	str, err := json.MarshalIndent(sessionError, "", "\t")
 	if err != nil {
 		log.Panicln(err)
 	}

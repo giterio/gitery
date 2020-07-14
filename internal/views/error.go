@@ -23,7 +23,7 @@ func RenderError(ctx context.Context, w http.ResponseWriter, e models.Error) {
 		Ok:        false,
 		Timestamp: e.Timestamp.Unix(),
 	}
-	output, err := json.MarshalIndent(errorView, "", "\t\t")
+	output, err := json.MarshalIndent(errorView, "", "\t")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Panicln(err)
