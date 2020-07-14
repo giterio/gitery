@@ -263,10 +263,10 @@ func (ps *PostService) Create(ctx context.Context, post *prototypes.Post) (err e
 func (ps *PostService) Update(ctx context.Context, post *prototypes.Post) (err error) {
 	err = ps.DB.QueryRowContext(ctx, `
 		UPDATE posts
-		SET title = $3, content = $4, updated_at = $5
+		SET title = $3, content = $4, is_deleted = $5, updated_at = $6
 		WHERE id = $1 AND user_id = $2
 		RETURNING updated_at
-		`, post.ID, post.UserID, post.Title, post.Content, time.Now()).Scan(&post.UpdatedAt)
+		`, post.ID, post.UserID, post.Title, post.Content, false, time.Now()).Scan(&post.UpdatedAt)
 	if err != nil {
 		err = HandleDatabaseQueryError(ctx, err)
 	}

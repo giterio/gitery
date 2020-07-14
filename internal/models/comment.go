@@ -118,8 +118,9 @@ func (cs *CommentService) Create(ctx context.Context, comment *prototypes.Commen
 	err = cs.DB.QueryRowContext(ctx, `
 		INSERT INTO comments (content, user_id, post_id, parent_id)
 		VALUES ($1, $2, $3, $4)
-		RETURNING id, created_at, updated_at
-		`, comment.Content, comment.UserID, comment.PostID, comment.ParentID).Scan(&comment.ID, &comment.CreatedAt, &comment.UpdatedAt)
+		RETURNING id, is_deleted, created_at, updated_at
+		`, comment.Content, comment.UserID, comment.PostID, comment.ParentID).Scan(
+		&comment.ID, &comment.IsDeleted, &comment.CreatedAt, &comment.UpdatedAt)
 	if err != nil {
 		err = HandleDatabaseQueryError(ctx, err)
 		return
@@ -144,10 +145,10 @@ func (cs *CommentService) Create(ctx context.Context, comment *prototypes.Commen
 func (cs *CommentService) Update(ctx context.Context, comment *prototypes.Comment) (err error) {
 	err = cs.DB.QueryRowContext(ctx, `
 		UPDATE comments
-		SET content = $3, updated_at = $4
+		SET content = $3, is_deleted = $4, updated_at = $5
 		WHERE id = $1 AND user_id = $2
-		RETURNING updated_at
-		`, comment.ID, comment.UserID, comment.Content, time.Now()).Scan(&comment.UpdatedAt)
+		RETURNING is_deleted, updated_at
+		`, comment.ID, comment.UserID, comment.Content, false, time.Now()).Scan(&comment.IsDeleted, &comment.UpdatedAt)
 	if err != nil {
 		err = HandleDatabaseQueryError(ctx, err)
 	}
