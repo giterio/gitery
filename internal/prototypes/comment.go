@@ -27,3 +27,9 @@ type CommentService interface {
 	Update(ctx context.Context, comment *Comment) (err error)
 	Delete(ctx context.Context, comment *Comment) (err error)
 }
+
+// CommentVoteService ...
+type CommentVoteService interface {
+	Vote(ctx context.Context, userID int, commentID int, vote bool) (err error)
+	Cancel(ctx context.Context, userID int, commentID int) (err error)
+}

@@ -56,11 +56,10 @@ CREATE TABLE post_like(
 	PRIMARY KEY (user_id, post_id)
 );
 
-CREATE TABLE comment_valuable(
+CREATE TABLE comment_vote(
 	user_id INTEGER REFERENCES users(id),
-	post_id INTEGER REFERENCES posts(id),
 	comment_id INTEGER REFERENCES comments(id),
-	valuable BOOLEAN NOT NULL,
+	vote BOOLEAN NOT NULL,
 	created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 	PRIMARY KEY (user_id, comment_id)
 );
