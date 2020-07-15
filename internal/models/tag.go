@@ -96,7 +96,6 @@ func (ts *TagService) Remove(ctx context.Context, userID int, postID int, tagID 
 		`, postID, tagID)
 	if err != nil {
 		err = TransactionError(ctx, err)
-		return
 	}
 	return
 }

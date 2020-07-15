@@ -285,3 +285,37 @@ func (ps *PostService) Delete(ctx context.Context, post *prototypes.Post) (err e
 	}
 	return
 }
+
+// PostLikeService ...
+type PostLikeService struct {
+	DB *sql.DB
+}
+
+// Like a post
+func (pl *PostLikeService) Like(ctx context.Context, userID int, postID int) (err error) {
+	statement := `
+		INSERT INTO post_like (user_id, post_id)
+		VALUES ($1, $2) ON CONFLICT (name) DO NOTHING`
+	stmt, err := pl.DB.PrepareContext(ctx, statement)
+	if err != nil {
+		err = TransactionError(ctx, err)
+		return
+	}
+	defer stmt.Close()
+	_, err = stmt.ExecContext(ctx, userID, postID)
+	if err != nil {
+		err = TransactionError(ctx, err)
+	}
+	return
+}
+
+// Unlike ...
+func (pl *PostLikeService) Unlike(ctx context.Context, userID int, postID int) (err error) {
+	_, err = pl.DB.ExecContext(ctx, `
+		DELETE FROM post_like WHERE user_id = $1 AND post_id = $2
+		`, userID, postID)
+	if err != nil {
+		err = TransactionError(ctx, err)
+	}
+	return
+}

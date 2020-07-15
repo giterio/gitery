@@ -53,6 +53,9 @@ func main() {
 		},
 		PostHandler: &controllers.PostHandler{
 			Model: &models.PostService{DB: db},
+			PostLikeHandler: &controllers.PostLikeHandler{
+				Model: &models.PostLikeService{DB: db},
+			},
 		},
 		CommentHandler: &controllers.CommentHandler{
 			Model: &models.CommentService{DB: db},

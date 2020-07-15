@@ -221,6 +221,8 @@ func (h *UserPostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// fetch current user's post
+// GET /user/:id/posts or /user/posts
 func (h *UserPostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
 	resource, _ := models.ShiftRoute(r)

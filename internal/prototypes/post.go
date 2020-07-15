@@ -30,3 +30,9 @@ type PostService interface {
 	Update(ctx context.Context, post *Post) (err error)
 	Delete(ctx context.Context, post *Post) (err error)
 }
+
+// PostLikeService ...
+type PostLikeService interface {
+	Like(ctx context.Context, userID int, postID int) (err error)
+	Unlike(ctx context.Context, userID int, postID int) (err error)
+}
