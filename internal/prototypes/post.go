@@ -19,6 +19,7 @@ type Post struct {
 	Author   *User      `json:"-"` // reconstruct in PostView
 	Tags     []*Tag     `json:"tags,omitempty"`
 	Comments []*Comment `json:"-"` // reconstruct in PostView
+	Likes    int        `json:"likes"`
 }
 
 // PostService ...

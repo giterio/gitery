@@ -31,6 +31,7 @@ func (ps *PostService) Fetch(ctx context.Context, id int) (post *prototypes.Post
 func (ps *PostService) FetchDetail(ctx context.Context, id int) (post *prototypes.Post, err error) {
 	postCh := make(chan *prototypes.Post)
 	tagsCh := make(chan []*prototypes.Tag)
+	likesCh := make(chan int)
 	commentsCh := make(chan []*prototypes.Comment)
 	errCh := make(chan error)
 
@@ -38,10 +39,10 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post *prototype
 		// query post
 		post = &prototypes.Post{}
 		err = ps.DB.QueryRowContext(ctx, `
-		SELECT id, title, content, user_id, created_at, updated_at
-		FROM posts
-		WHERE id = $1
-		`, id).Scan(&post.ID, &post.Title, &post.Content, &post.UserID, &post.CreatedAt, &post.UpdatedAt)
+			SELECT id, title, content, user_id, created_at, updated_at
+			FROM posts
+			WHERE id = $1
+			`, id).Scan(&post.ID, &post.Title, &post.Content, &post.UserID, &post.CreatedAt, &post.UpdatedAt)
 		if err != nil {
 			errCh <- HandleDatabaseQueryError(ctx, err)
 			return
@@ -50,10 +51,10 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post *prototype
 		// query user information
 		user := prototypes.User{}
 		err = ps.DB.QueryRowContext(ctx, `
-		SELECT id, email, hashed_pwd, nickname, created_at, updated_at
-		FROM users
-		WHERE id = $1
-		`, *post.UserID).Scan(&user.ID, &user.Email, &user.HashedPwd, &user.Nickname, &user.CreatedAt, &user.UpdatedAt)
+			SELECT id, email, hashed_pwd, nickname, created_at, updated_at
+			FROM users
+			WHERE id = $1
+			`, *post.UserID).Scan(&user.ID, &user.Email, &user.HashedPwd, &user.Nickname, &user.CreatedAt, &user.UpdatedAt)
 		if err != nil {
 			errCh <- HandleDatabaseQueryError(ctx, err)
 			return
@@ -65,10 +66,10 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post *prototype
 	go func() {
 		// query tags related to the post
 		tagRows, err := ps.DB.QueryContext(ctx, `
-		SELECT id, name
-		FROM tags
-		WHERE id IN (SELECT tag_id FROM post_tag WHERE post_id = $1)
-		`, id)
+			SELECT id, name
+			FROM tags
+			WHERE id IN (SELECT tag_id FROM post_tag WHERE post_id = $1)
+			`, id)
 		if err != nil {
 			errCh <- TransactionError(ctx, err)
 			return
@@ -89,14 +90,28 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post *prototype
 	}()
 
 	go func() {
+		var likes int
+		err := ps.DB.QueryRowContext(ctx, `
+			SELECT COUNT(*)
+			FROM post_like
+			WHERE post_id = $1
+			`, id).Scan(&likes)
+		if err != nil {
+			errCh <- TransactionError(ctx, err)
+			return
+		}
+		likesCh <- likes
+	}()
+
+	go func() {
 		// query comments related to the post
 		commentRows, err := ps.DB.QueryContext(ctx, `
-		SELECT comments.id, comments.content, comments.user_id, comments.parent_id, comments.is_deleted, comments.created_at, comments.updated_at,
-		users.id, users.email, users.nickname, users.created_at, users.updated_at
-		FROM comments INNER JOIN users
-		ON comments.post_id = $1 AND comments.user_id = users.id
-		ORDER BY comments.created_at ASC
-		`, id)
+			SELECT comments.id, comments.content, comments.user_id, comments.parent_id, comments.is_deleted, comments.created_at, comments.updated_at,
+			users.id, users.email, users.nickname, users.created_at, users.updated_at
+			FROM comments INNER JOIN users
+			ON comments.post_id = $1 AND comments.user_id = users.id
+			ORDER BY comments.created_at ASC
+			`, id)
 		if err != nil {
 			errCh <- TransactionError(ctx, err)
 			return
@@ -155,18 +170,21 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post *prototype
 	var (
 		tags     []*prototypes.Tag
 		comments []*prototypes.Comment
+		likes    int
 	)
-	for i := 0; i < 3; i++ {
+	for i := 0; i < 4; i++ {
 		select {
 		case err = <-errCh:
 			return
 		case post = <-postCh:
 		case tags = <-tagsCh:
+		case likes = <-likesCh:
 		case comments = <-commentsCh:
 		}
 	}
 	post.Comments = comments
 	post.Tags = tags
+	post.Likes = likes
 	return
 }
 
