@@ -25,6 +25,7 @@ func (h *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	// get current resource from URL
 	resource, nextRoute := models.CurrentRoute(r).Shift()
+	// check if current resource is an id
 	if _, err := strconv.Atoi(resource); err == nil {
 		if nextRoute.IsLast() { // pattern /user/:id/*
 			// no more sub route
@@ -221,6 +222,8 @@ func (h *UserPostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// fetch current user's post
+// GET /user/:id/posts or /user/posts
 func (h *UserPostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
 	resource, _ := models.ShiftRoute(r)

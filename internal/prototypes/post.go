@@ -19,6 +19,7 @@ type Post struct {
 	Author   *User      `json:"-"` // reconstruct in PostView
 	Tags     []*Tag     `json:"tags,omitempty"`
 	Comments []*Comment `json:"-"` // reconstruct in PostView
+	Likes    int        `json:"likes"`
 }
 
 // PostService ...
@@ -29,4 +30,10 @@ type PostService interface {
 	Create(ctx context.Context, post *Post) (err error)
 	Update(ctx context.Context, post *Post) (err error)
 	Delete(ctx context.Context, post *Post) (err error)
+}
+
+// PostLikeService ...
+type PostLikeService interface {
+	Like(ctx context.Context, userID int, postID int) (err error)
+	Unlike(ctx context.Context, userID int, postID int) (err error)
 }
