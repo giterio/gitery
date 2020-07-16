@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/lib/pq"
+
 	"gitery/internal/prototypes"
 )
 
@@ -107,9 +109,14 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post *prototype
 		// query comments related to the post
 		commentRows, err := ps.DB.QueryContext(ctx, `
 			SELECT comments.id, comments.content, comments.user_id, comments.parent_id, comments.is_deleted, comments.created_at, comments.updated_at,
-			users.id, users.email, users.nickname, users.created_at, users.updated_at
-			FROM comments INNER JOIN users
+			users.id, users.email, users.nickname, users.created_at, users.updated_at,
+			COUNT(CASE WHEN comment_vote.vote = true then 1 ELSE NULL END) as vote_up,
+			COUNT(CASE WHEN comment_vote.vote = false then 1 ELSE NULL END) as vote_down
+			FROM comments
+			INNER JOIN users
 			ON comments.post_id = $1 AND comments.user_id = users.id
+			LEFT JOIN comment_vote
+			ON comments.id = comment_vote.comment_id
 			ORDER BY comments.created_at ASC
 			`, id)
 		if err != nil {
@@ -137,6 +144,8 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post *prototype
 				&comment.Author.Nickname,
 				&comment.Author.CreatedAt,
 				&comment.Author.UpdatedAt,
+				&comment.VoteUp,
+				&comment.VoteDown,
 			)
 			if err != nil {
 				errCh <- TransactionError(ctx, err)
@@ -197,6 +206,7 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (po
 	// postMap is used to assemble posts and comments efficiently
 	postMap := map[int]*prototypes.Post{}
 	postList := []*prototypes.Post{}
+	postIDs := []int{}
 
 	// query all the posts of the user
 	postRows, err := ps.DB.QueryContext(ctx, `
@@ -221,16 +231,17 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (po
 		if err != nil {
 			return
 		}
-		postList = append(postList, &post)
 		postMap[*post.ID] = &post
+		postList = append(postList, &post)
+		postIDs = append(postIDs, *post.ID)
 	}
 
 	// query all the tags related to the posts
 	tagRows, err := ps.DB.QueryContext(ctx, `
 		SELECT tags.id, tags.name, post_tag.post_id
 		FROM tags INNER JOIN post_tag
-		ON tags.id = post_tag.tag_id AND post_tag.post_id IN (SELECT id FROM posts ORDER BY posts.updated_at DESC LIMIT $1 OFFSET $2)
-		`, limit, offset)
+		ON tags.id = post_tag.tag_id AND post_tag.post_id IN ($1)
+		`, pq.Array(postIDs))
 	if err != nil {
 		err = TransactionError(ctx, err)
 		return

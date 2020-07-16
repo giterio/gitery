@@ -3,6 +3,8 @@ DROP TABLE IF EXISTS posts cascade;
 DROP TABLE IF EXISTS comments;
 DROP TABLE IF EXISTS tags cascade;
 DROP TABLE IF EXISTS post_tag;
+DROP TABLE IF EXISTS post_like;
+DROP TABLE IF EXISTS comment_vote;
 
 CREATE TABLE users (
 	id SERIAL PRIMARY KEY,
