@@ -117,6 +117,7 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post *prototype
 			ON comments.post_id = $1 AND comments.user_id = users.id
 			LEFT JOIN comment_vote
 			ON comments.id = comment_vote.comment_id
+			GROUP BY comments.id, users.id
 			ORDER BY comments.created_at ASC
 			`, id)
 		if err != nil {
@@ -324,7 +325,7 @@ type PostLikeService struct {
 func (pl *PostLikeService) Like(ctx context.Context, userID int, postID int) (err error) {
 	statement := `
 		INSERT INTO post_like (user_id, post_id)
-		VALUES ($1, $2) ON CONFLICT (name) DO NOTHING`
+		VALUES ($1, $2) ON CONFLICT (user_id, post_id) DO NOTHING`
 	stmt, err := pl.DB.PrepareContext(ctx, statement)
 	if err != nil {
 		err = TransactionError(ctx, err)

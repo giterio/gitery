@@ -20,6 +20,31 @@ type PostHandler struct {
 func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
 	ctx := r.Context()
+
+	// get current resource from URL
+	resource, nextRoute := models.CurrentRoute(r).Shift()
+	// check if current resource is an id
+	if _, err := strconv.Atoi(resource); err == nil {
+		if nextRoute.IsLast() { // pattern /post/:id/*
+			// no more sub route
+			resource = ""
+		} else { // pattern /post/*
+			// override current resource with sub-route resource
+			resource, _ = nextRoute.Shift()
+		}
+	}
+	// pattern /post/:id/like or /post/like
+	if resource != "" {
+		switch resource {
+		case "like":
+			h.PostLikeHandler.ServeHTTP(w, r)
+		default:
+			e := models.ForbiddenError(ctx, nil)
+			views.RenderError(ctx, w, e)
+		}
+		return
+	}
+
 	switch r.Method {
 	case http.MethodGet:
 		err = h.handleGet(w, r)

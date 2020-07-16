@@ -12,12 +12,38 @@ import (
 
 // CommentHandler ...
 type CommentHandler struct {
-	Model prototypes.CommentService
+	Model              prototypes.CommentService
+	CommentVoteHandler *CommentVoteHandler
 }
 
 func (h *CommentHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
 	ctx := r.Context()
+
+	// get current resource from URL
+	resource, nextRoute := models.CurrentRoute(r).Shift()
+	// check if current resource is an id
+	if _, err := strconv.Atoi(resource); err == nil {
+		if nextRoute.IsLast() { // pattern /comment/:id/*
+			// no more sub route
+			resource = ""
+		} else { // pattern /comment/*
+			// override current resource with sub-route resource
+			resource, _ = nextRoute.Shift()
+		}
+	}
+	// pattern /comment/:id/vote or /comment/vote
+	if resource != "" {
+		switch resource {
+		case "vote":
+			h.CommentVoteHandler.ServeHTTP(w, r)
+		default:
+			e := models.ForbiddenError(ctx, nil)
+			views.RenderError(ctx, w, e)
+		}
+		return
+	}
+
 	switch r.Method {
 	case http.MethodPost:
 		err = h.handlePost(w, r)
@@ -131,5 +157,89 @@ func (h *CommentHandler) handleDelete(w http.ResponseWriter, r *http.Request) (e
 		return
 	}
 	views.RenderEmpty(ctx, w)
+	return
+}
+
+// CommentVoteHandler ...
+// POST /comment/vote
+type CommentVoteHandler struct {
+	Model prototypes.CommentVoteService
+}
+
+func (h *CommentVoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var err error
+	ctx := r.Context()
+	switch r.Method {
+	case http.MethodPost:
+		err = h.handlePost(w, r)
+	case http.MethodDelete:
+		err = h.handleDelete(w, r)
+	default:
+		err = models.ForbiddenError(ctx, nil)
+	}
+	if err != nil {
+		e := models.ServerError(ctx, err)
+		views.RenderError(ctx, w, e)
+	}
+}
+
+// Vote up/down comment
+// POST /comment/vote
+func (h *CommentVoteHandler) handlePost(w http.ResponseWriter, r *http.Request) (err error) {
+	ctx := r.Context()
+	// Check user auth
+	payload, ok := ctx.Value(prototypes.UserKey).(prototypes.JwtPayload)
+	if !ok {
+		err = models.AuthorizationError(ctx, err)
+		return
+	}
+
+	// retrieve commentID from request body
+	param := struct {
+		CommentID *int  `json:"commentID"`
+		Vote      *bool `json:"vote"`
+	}{}
+	err = json.NewDecoder(r.Body).Decode(&param)
+	if err != nil {
+		err = models.BadRequestError(ctx, err)
+		return
+	}
+
+	// vote comment
+	err = h.Model.Vote(ctx, *payload.Pub.ID, *param.CommentID, *param.Vote)
+	if err != nil {
+		return
+	}
+	err = views.RenderEmpty(ctx, w)
+	return
+}
+
+// cancel vote
+// POST /comment/vote
+func (h *CommentVoteHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
+	ctx := r.Context()
+	// Check user auth
+	payload, ok := ctx.Value(prototypes.UserKey).(prototypes.JwtPayload)
+	if !ok {
+		err = models.AuthorizationError(ctx, err)
+		return
+	}
+
+	// retrieve commentID from request body
+	param := struct {
+		CommentID *int `json:"commentID"`
+	}{}
+	err = json.NewDecoder(r.Body).Decode(&param)
+	if err != nil {
+		err = models.BadRequestError(ctx, err)
+		return
+	}
+
+	// cancel vote
+	err = h.Model.Cancel(ctx, *payload.Pub.ID, *param.CommentID)
+	if err != nil {
+		return
+	}
+	err = views.RenderEmpty(ctx, w)
 	return
 }

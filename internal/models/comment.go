@@ -38,11 +38,18 @@ func (cs *CommentService) Fetch(ctx context.Context, id int) (comment *prototype
 // FetchDetail is to fetch single comment detail
 func (cs *CommentService) FetchDetail(ctx context.Context, id int) (comment *prototypes.Comment, err error) {
 	// query comment from DB
-	comment = &prototypes.Comment{}
+	comment = &prototypes.Comment{Author: &prototypes.User{}}
 	err = cs.DB.QueryRowContext(ctx, `
-		SELECT id, content, user_id, post_id, parent_id, is_deleted, created_at, updated_at
+		SELECT comments.id, comments.content, comments.user_id, comments.parent_id, comments.is_deleted, comments.created_at, comments.updated_at,
+		users.id, users.email, users.nickname, users.created_at, users.updated_at,
+		COUNT(CASE WHEN comment_vote.vote = true then 1 ELSE NULL END) as vote_up,
+		COUNT(CASE WHEN comment_vote.vote = false then 1 ELSE NULL END) as vote_down
 		FROM comments
-		WHERE id = $1
+		INNER JOIN users
+		ON comments.id = $1 AND comments.user_id = users.id
+		LEFT JOIN comment_vote
+		ON comments.id = comment_vote.comment_id
+		GROUP BY comments.id, users.id
 		`, id).Scan(
 		&comment.ID,
 		&comment.Content,
@@ -51,24 +58,18 @@ func (cs *CommentService) FetchDetail(ctx context.Context, id int) (comment *pro
 		&comment.ParentID,
 		&comment.IsDeleted,
 		&comment.CreatedAt,
-		&comment.UpdatedAt)
+		&comment.UpdatedAt,
+		&comment.Author.ID,
+		&comment.Author.Email,
+		&comment.Author.Nickname,
+		&comment.Author.CreatedAt,
+		&comment.Author.UpdatedAt,
+		&comment.VoteUp,
+		&comment.VoteDown,
+	)
 	if err != nil {
 		err = HandleDatabaseQueryError(ctx, err)
-		return
 	}
-
-	// query user information
-	user := prototypes.User{}
-	err = cs.DB.QueryRowContext(ctx, `
-		SELECT id, email, hashed_pwd, nickname, created_at, updated_at
-		FROM users
-		WHERE id = $1
-		`, *comment.UserID).Scan(&user.ID, &user.Email, &user.HashedPwd, &user.Nickname, &user.CreatedAt, &user.UpdatedAt)
-	if err != nil {
-		err = HandleDatabaseQueryError(ctx, err)
-		return
-	}
-	comment.Author = &user
 	return
 }
 
