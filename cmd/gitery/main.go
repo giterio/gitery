@@ -59,6 +59,9 @@ func main() {
 		},
 		CommentHandler: &controllers.CommentHandler{
 			Model: &models.CommentService{DB: db},
+			CommentVoteHandler: &controllers.CommentVoteHandler{
+				Model: &models.CommentVoteService{DB: db},
+			},
 		},
 		TagHandler: &controllers.TagHandler{
 			Model: &models.TagService{DB: db},

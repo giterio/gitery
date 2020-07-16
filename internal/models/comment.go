@@ -178,7 +178,7 @@ type CommentVoteService struct {
 func (cvs *CommentVoteService) Vote(ctx context.Context, userID int, commentID int, vote bool) (err error) {
 	statement := `
 		INSERT INTO comment_vote (user_id, comment_id, vote)
-		VALUES ($1, $2, $3) ON CONFLICT (name) DO NOTHING`
+		VALUES ($1, $2, $3) ON CONFLICT (user_id, comment_id) DO NOTHING`
 	stmt, err := cvs.DB.PrepareContext(ctx, statement)
 	if err != nil {
 		err = TransactionError(ctx, err)
