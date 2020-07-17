@@ -241,7 +241,7 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (po
 	tagRows, err := ps.DB.QueryContext(ctx, `
 		SELECT tags.id, tags.name, post_tag.post_id
 		FROM tags INNER JOIN post_tag
-		ON tags.id = post_tag.tag_id AND post_tag.post_id IN ($1)
+		ON tags.id = post_tag.tag_id AND post_tag.post_id = ANY ($1)
 		`, pq.Array(postIDs))
 	if err != nil {
 		err = TransactionError(ctx, err)
