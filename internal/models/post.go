@@ -199,7 +199,7 @@ func (ps *PostService) FetchDetail(ctx context.Context, id int) (post *prototype
 }
 
 // FetchList is to get latest posts
-func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (posts []*prototypes.Post, err error) {
+func (ps *PostService) FetchList(ctx context.Context, limit int, offset int, userID int) (posts []*prototypes.Post, err error) {
 	if limit == 0 {
 		limit = 10
 	}
@@ -214,10 +214,10 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int) (po
 		SELECT posts.id, posts.title, posts.user_id, posts.created_at, posts.updated_at,
 		users.id, users.email, users.nickname, users.created_at, users.updated_at
 		FROM posts INNER JOIN users
-		ON posts.user_id = users.id AND posts.is_deleted = false
+		ON posts.user_id = users.id AND (users.id = $3 OR $3 = -1) AND posts.is_deleted = false
 		ORDER BY posts.created_at DESC
 		LIMIT $1 OFFSET $2
-		`, limit, offset)
+		`, limit, offset, userID)
 	if err != nil {
 		err = TransactionError(ctx, err)
 		return

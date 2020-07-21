@@ -71,10 +71,10 @@ func (h *PostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err err
 	resource, _ := models.ShiftRoute(r)
 
 	switch resource {
-	// handle /post?limit=10&offset=0
+	// handle /post?limit=10&offset=0&user_id=0
 	case "":
 		// pre-declaration to avoid shadowing of variable err
-		var limit, offset int
+		var limit, offset, userID int
 		var posts []*prototypes.Post
 		q := r.URL.Query()
 		limit, err = strconv.Atoi(q.Get("limit"))
@@ -85,7 +85,11 @@ func (h *PostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err err
 		if err != nil {
 			offset = 0
 		}
-		posts, err = h.Model.FetchList(ctx, limit, offset)
+		userID, err = strconv.Atoi(q.Get("user_id"))
+		if err != nil {
+			userID = -1
+		}
+		posts, err = h.Model.FetchList(ctx, limit, offset, userID)
 		if err != nil {
 			return
 		}
