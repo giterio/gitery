@@ -22,6 +22,13 @@ type Comment struct {
 	VoteDown int        `json:"voteDown"`
 }
 
+// CommentVote ...
+type CommentVote struct {
+	CommentID *int `json:"commentID"`
+	UserID    *int `json:"userID"`
+	Vote      bool `json:"vote"`
+}
+
 // CommentService ...
 type CommentService interface {
 	Fetch(ctx context.Context, id int) (comment *Comment, err error)
@@ -33,6 +40,7 @@ type CommentService interface {
 
 // CommentVoteService ...
 type CommentVoteService interface {
-	Vote(ctx context.Context, userID int, commentID int, vote bool) (err error)
+	FetchVotes(ctx context.Context, userID int, postID int) (votes []*CommentVote, err error)
+	Vote(ctx context.Context, commentVote *CommentVote) (err error)
 	Cancel(ctx context.Context, userID int, commentID int) (err error)
 }

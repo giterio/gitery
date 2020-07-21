@@ -34,6 +34,7 @@ type PostService interface {
 
 // PostLikeService ...
 type PostLikeService interface {
+	FetchLikes(ctx context.Context, userID int) (likes []*int, err error)
 	Like(ctx context.Context, userID int, postID int) (err error)
 	Unlike(ctx context.Context, userID int, postID int) (err error)
 }
