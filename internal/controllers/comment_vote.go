@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"gitery/internal/models"
 	"gitery/internal/prototypes"
@@ -43,18 +44,17 @@ func (h *CommentVoteHandler) handleGet(w http.ResponseWriter, r *http.Request) (
 		return
 	}
 
-	// retrieve postID from request body
-	param := struct {
-		PostID *int `json:"postID"`
-	}{}
-	err = json.NewDecoder(r.Body).Decode(&param)
+	// retrieve postID from query
+	var postID int
+	q := r.URL.Query()
+	postID, err = strconv.Atoi(q.Get("post_id"))
 	if err != nil {
 		err = models.BadRequestError(ctx, err)
 		return
 	}
 
 	// fetch user's votes on post's comments
-	votes, err := h.Model.FetchVotes(ctx, *payload.Pub.ID, *param.PostID)
+	votes, err := h.Model.FetchVotes(ctx, *payload.Pub.ID, postID)
 	if err != nil {
 		return
 	}
