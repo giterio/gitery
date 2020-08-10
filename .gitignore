@@ -28,5 +28,4 @@ bin/*
 # vendor/
 
 # Debug config and cache
-.vscode
 *_bin
