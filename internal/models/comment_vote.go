@@ -40,7 +40,8 @@ func (cvs *CommentVoteService) FetchVotes(ctx context.Context, userID int, postI
 func (cvs *CommentVoteService) Vote(ctx context.Context, commentVote *prototypes.CommentVote) (err error) {
 	statement := `
 		INSERT INTO comment_vote (user_id, comment_id, vote)
-		VALUES ($1, $2, $3) ON CONFLICT (user_id, comment_id) DO NOTHING`
+		VALUES ($1, $2, $3) ON CONFLICT (user_id, comment_id) DO UPDATE
+		SET vote = $3`
 	stmt, err := cvs.DB.PrepareContext(ctx, statement)
 	if err != nil {
 		err = TransactionError(ctx, err)

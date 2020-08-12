@@ -64,7 +64,7 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // Retrieve a post
-// GET /post/:id or /post?limit=10&offset=0
+// GET /post/:id or /post?limit=10&offset=0&user_id=1
 func (h *PostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
 	// parse post ID from URL
