@@ -29,8 +29,3 @@ type UserService interface {
 	Update(ctx context.Context, user *User) (err error)
 	Delete(ctx context.Context, login *Login) (err error)
 }
-
-// UserPostService ...
-type UserPostService interface {
-	Fetch(ctx context.Context, id int) (posts []*Post, err error)
-}

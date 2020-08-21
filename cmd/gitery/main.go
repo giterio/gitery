@@ -47,9 +47,6 @@ func main() {
 		},
 		UserHandler: &controllers.UserHandler{
 			Model: &models.UserService{DB: db},
-			UserPostHandler: &controllers.UserPostHandler{
-				Model: &models.UserPostService{DB: db},
-			},
 		},
 		PostHandler: &controllers.PostHandler{
 			Model: &models.PostService{DB: db},

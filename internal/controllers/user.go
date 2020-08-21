@@ -16,38 +16,12 @@ import (
 
 // UserHandler ...
 type UserHandler struct {
-	Model           prototypes.UserService
-	UserPostHandler *UserPostHandler
+	Model prototypes.UserService
 }
 
 func (h *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
 	ctx := r.Context()
-	// get current resource from URL
-	resource, nextRoute := models.CurrentRoute(r).Shift()
-	// check if current resource is an id
-	if _, err := strconv.Atoi(resource); err == nil {
-		if nextRoute.IsLast() { // pattern /user/:id/*
-			// no more sub route
-			resource = ""
-		} else { // pattern /user/*
-			// override current resource with sub-route resource
-			resource, _ = nextRoute.Shift()
-		}
-	}
-
-	// pattern /user/:id/posts or /user/posts
-	if resource != "" {
-		switch resource {
-		case "posts":
-			h.UserPostHandler.ServeHTTP(w, r)
-		default:
-			e := models.ForbiddenError(ctx, nil)
-			views.RenderError(ctx, w, e)
-		}
-		return
-	}
-
 	// user is the resource to manipulate
 	switch r.Method {
 	case http.MethodGet:
