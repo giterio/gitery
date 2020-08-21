@@ -212,12 +212,14 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int, aut
 	// query all the posts of the user
 	postRows, err := ps.DB.QueryContext(ctx, `
 		SELECT posts.id, posts.title, posts.user_id, posts.created_at, posts.updated_at,
-		users.id, users.email, users.nickname, users.created_at, users.updated_at
+		users.id, users.email, users.nickname, users.created_at, users.updated_at,
+		COUNT(post_like)
 		FROM posts
 		INNER JOIN users
 		ON posts.user_id = users.id AND posts.is_deleted = false AND (users.id = $3 OR $3 = -1)
 		INNER JOIN post_like
 		ON (post_like.post_id = posts.id AND post_like.user_id = $4) OR $4 = -1
+		GROUP BY posts.id, users.id
 		ORDER BY posts.created_at DESC
 		LIMIT $1 OFFSET $2
 		`, limit, offset, authorID, likedBy)
@@ -231,7 +233,7 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int, aut
 	for postRows.Next() {
 		post := prototypes.Post{Comments: []*prototypes.Comment{}, Tags: []*prototypes.Tag{}, Author: &prototypes.User{}}
 		err = postRows.Scan(&post.ID, &post.Title, &post.UserID, &post.CreatedAt, &post.UpdatedAt,
-			&post.Author.ID, &post.Author.Email, &post.Author.Nickname, &post.Author.CreatedAt, &post.Author.UpdatedAt)
+			&post.Author.ID, &post.Author.Email, &post.Author.Nickname, &post.Author.CreatedAt, &post.Author.UpdatedAt, &post.Likes)
 		if err != nil {
 			return
 		}
