@@ -243,7 +243,8 @@ func (ps *PostService) FetchList(ctx context.Context, limit int, offset int, aut
 	// query all the tags related to the posts
 	tagRows, err := ps.DB.QueryContext(ctx, `
 		SELECT tags.id, tags.name, post_tag.post_id
-		FROM tags INNER JOIN post_tag
+		FROM tags
+		INNER JOIN post_tag
 		ON tags.id = post_tag.tag_id AND post_tag.post_id = ANY ($1)
 		`, pq.Array(postIDs))
 	if err != nil {
