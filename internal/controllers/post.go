@@ -74,7 +74,7 @@ func (h *PostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err err
 	// handle /posts?limit=10&offset=0&author_id=0
 	case "":
 		// pre-declaration to avoid shadowing of variable err
-		var limit, offset, authorID int
+		var limit, offset, authorID, likedBy int
 		var posts []*prototypes.Post
 		q := r.URL.Query()
 		limit, err = strconv.Atoi(q.Get("limit"))
@@ -89,7 +89,11 @@ func (h *PostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err err
 		if err != nil {
 			authorID = -1
 		}
-		posts, err = h.Model.FetchList(ctx, limit, offset, authorID)
+		likedBy, err = strconv.Atoi(q.Get("liked_by"))
+		if err != nil {
+			likedBy = -1
+		}
+		posts, err = h.Model.FetchList(ctx, limit, offset, authorID, likedBy)
 		if err != nil {
 			return
 		}
