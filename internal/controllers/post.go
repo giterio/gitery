@@ -16,7 +16,7 @@ type PostHandler struct {
 	PostLikeHandler *PostLikeHandler
 }
 
-// Handle /post/*
+// Handle /posts/*
 func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
 	ctx := r.Context()
@@ -33,10 +33,10 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			resource, _ = nextRoute.Shift()
 		}
 	}
-	// pattern /post/:id/like or /post/like
+	// pattern /posts/:id/like or /posts/like
 	if resource != "" {
 		switch resource {
-		case "like":
+		case "likes":
 			h.PostLikeHandler.ServeHTTP(w, r)
 		default:
 			e := models.ForbiddenError(ctx, nil)
@@ -64,17 +64,17 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // Retrieve a post
-// GET /post/:id or /post?limit=10&offset=0&user_id=1
+// GET /posts/:id or /posts?limit=10&offset=0&author_id=1
 func (h *PostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
 	// parse post ID from URL
 	resource, _ := models.ShiftRoute(r)
 
 	switch resource {
-	// handle /post?limit=10&offset=0&user_id=0
+	// handle /posts?limit=10&offset=0&author_id=0
 	case "":
 		// pre-declaration to avoid shadowing of variable err
-		var limit, offset, userID int
+		var limit, offset, authorID int
 		var posts []*prototypes.Post
 		q := r.URL.Query()
 		limit, err = strconv.Atoi(q.Get("limit"))
@@ -85,18 +85,18 @@ func (h *PostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err err
 		if err != nil {
 			offset = 0
 		}
-		userID, err = strconv.Atoi(q.Get("user_id"))
+		authorID, err = strconv.Atoi(q.Get("author_id"))
 		if err != nil {
-			userID = -1
+			authorID = -1
 		}
-		posts, err = h.Model.FetchList(ctx, limit, offset, userID)
+		posts, err = h.Model.FetchList(ctx, limit, offset, authorID)
 		if err != nil {
 			return
 		}
 		err = views.RenderPostList(ctx, w, posts)
 		return
 
-	// handle /post/:id
+	// handle /posts/:id
 	default:
 		// pre-declaration to avoid shadowing of variable err
 		var id int
@@ -117,7 +117,7 @@ func (h *PostHandler) handleGet(w http.ResponseWriter, r *http.Request) (err err
 }
 
 // Create a post
-// POST /post/
+// POST /posts/
 func (h *PostHandler) handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
 	// Check user auth
@@ -144,7 +144,7 @@ func (h *PostHandler) handlePost(w http.ResponseWriter, r *http.Request) (err er
 }
 
 // Update a post
-// PATCH /post/1
+// PATCH /posts/1
 func (h *PostHandler) handlePatch(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
 	// Check user auth
@@ -186,7 +186,7 @@ func (h *PostHandler) handlePatch(w http.ResponseWriter, r *http.Request) (err e
 }
 
 // Delete a post
-// DELETE /post/1
+// DELETE /posts/1
 func (h *PostHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
 	// Check user auth

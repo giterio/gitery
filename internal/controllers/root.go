@@ -25,13 +25,13 @@ func (h *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "user":
 		h.UserHandler.ServeHTTP(w, r)
 		return
-	case "post":
+	case "posts":
 		h.PostHandler.ServeHTTP(w, r)
 		return
-	case "comment":
+	case "comments":
 		h.CommentHandler.ServeHTTP(w, r)
 		return
-	case "tag":
+	case "tags":
 		h.TagHandler.ServeHTTP(w, r)
 		return
 	default:

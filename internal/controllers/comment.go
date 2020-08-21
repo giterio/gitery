@@ -35,7 +35,7 @@ func (h *CommentHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// pattern /comment/:id/vote or /comment/vote
 	if resource != "" {
 		switch resource {
-		case "vote":
+		case "votes":
 			h.CommentVoteHandler.ServeHTTP(w, r)
 		default:
 			e := models.ForbiddenError(ctx, nil)
@@ -61,7 +61,7 @@ func (h *CommentHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // Create a comment
-// POST /comment/
+// POST /comments/
 func (h *CommentHandler) handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
 	// Check user auth
@@ -89,7 +89,7 @@ func (h *CommentHandler) handlePost(w http.ResponseWriter, r *http.Request) (err
 }
 
 // Update a comment
-// PUT /comment/1
+// PUT /comments/1
 func (h *CommentHandler) handlePatch(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
 	// Check user auth
@@ -131,7 +131,7 @@ func (h *CommentHandler) handlePatch(w http.ResponseWriter, r *http.Request) (er
 }
 
 // Delete a comment
-// DELETE /comment/1
+// DELETE /comments/1
 func (h *CommentHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
 	// Check user auth

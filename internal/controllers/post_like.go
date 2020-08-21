@@ -33,6 +33,8 @@ func (h *PostLikeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// get likes of post
+// GET /posts/likes
 func (h *PostLikeHandler) handleGet(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
 	// Check user auth
@@ -52,7 +54,7 @@ func (h *PostLikeHandler) handleGet(w http.ResponseWriter, r *http.Request) (err
 }
 
 // like post
-// POST /post/like
+// POST /posts/likes
 func (h *PostLikeHandler) handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
 	// Check user auth
@@ -82,7 +84,7 @@ func (h *PostLikeHandler) handlePost(w http.ResponseWriter, r *http.Request) (er
 }
 
 // like post
-// POST /post/like
+// POST /posts/likes
 func (h *PostLikeHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
 	// Check user auth

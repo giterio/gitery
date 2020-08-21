@@ -11,7 +11,7 @@ import (
 )
 
 // CommentVoteHandler ...
-// POST /comment/vote
+// POST /comments/votes
 type CommentVoteHandler struct {
 	Model prototypes.CommentVoteService
 }
@@ -63,7 +63,7 @@ func (h *CommentVoteHandler) handleGet(w http.ResponseWriter, r *http.Request) (
 }
 
 // Vote up/down comment
-// POST /comment/vote
+// POST /comments/votes
 func (h *CommentVoteHandler) handlePost(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
 	// Check user auth
@@ -91,7 +91,7 @@ func (h *CommentVoteHandler) handlePost(w http.ResponseWriter, r *http.Request) 
 }
 
 // cancel vote
-// POST /comment/vote
+// POST /comments/votes
 func (h *CommentVoteHandler) handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
 	ctx := r.Context()
 	// Check user auth
