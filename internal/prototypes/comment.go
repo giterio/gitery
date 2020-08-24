@@ -7,6 +7,7 @@ import (
 
 // Comment ...
 type Comment struct {
+	// Structural data
 	ID        *int      `json:"id"`
 	Content   string    `json:"content"`
 	PostID    *int      `json:"postID"`

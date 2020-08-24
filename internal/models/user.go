@@ -17,15 +17,59 @@ type UserService struct {
 
 // Fetch user information
 func (us *UserService) Fetch(ctx context.Context, id int) (user *prototypes.User, err error) {
-	user = &prototypes.User{}
-	err = us.DB.QueryRowContext(ctx, `
+	userCh := make(chan *prototypes.User)
+	likesCh := make(chan []*int)
+	errCh := make(chan error)
+
+	go func() {
+		user = &prototypes.User{}
+		err = us.DB.QueryRowContext(ctx, `
 		SELECT id, email, hashed_pwd, nickname, created_at, updated_at
 		FROM users
 		WHERE id = $1
 		`, id).Scan(&user.ID, &user.Email, &user.HashedPwd, &user.Nickname, &user.CreatedAt, &user.UpdatedAt)
-	if err != nil {
-		err = HandleDatabaseQueryError(ctx, err)
+		if err != nil {
+			errCh <- HandleDatabaseQueryError(ctx, err)
+			return
+		}
+		userCh <- user
+	}()
+
+	go func() {
+		likeRows, err := us.DB.QueryContext(ctx, `
+		SELECT post_id
+		FROM post_like
+		WHERE user_id = $1
+		`, id)
+		if err != nil {
+			errCh <- TransactionError(ctx, err)
+			return
+		}
+		defer likeRows.Close()
+
+		likes := []*int{}
+		for likeRows.Next() {
+			var postID int
+			err = likeRows.Scan(&postID)
+			if err != nil {
+				errCh <- err
+				return
+			}
+			likes = append(likes, &postID)
+		}
+		likesCh <- likes
+	}()
+
+	var likes []*int
+	for i := 0; i < 2; i++ {
+		select {
+		case err = <-errCh:
+			return
+		case user = <-userCh:
+		case likes = <-likesCh:
+		}
 	}
+	user.Likes = likes
 	return
 }
 

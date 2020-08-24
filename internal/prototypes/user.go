@@ -13,6 +13,7 @@ type Register struct {
 
 // User ...
 type User struct {
+	// Structural data
 	ID        *int      `json:"id"`
 	Email     string    `json:"email"`
 	HashedPwd string    `json:"-"`
@@ -20,6 +21,8 @@ type User struct {
 	CreatedAt time.Time `json:"-"` // reconstruct in UserView
 	UpdatedAt time.Time `json:"-"` // reconstruct in UserView
 	IsDeleted bool      `json:"-"`
+	// Linked data
+	Likes []*int `json:"likes"`
 }
 
 // UserService ...
